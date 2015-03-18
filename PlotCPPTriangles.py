@@ -17,11 +17,15 @@ set_plot_params(fontsize=12)
 #path="/home/exarkun/Documents/Research/KalmanEstimation/"
 #desktopPath="/home/exarkun/Desktop/"
 
-pMax=int(s.argv[1])
-chop=int(s.argv[2])
+basePath=s.argv[1]
+pMax=int(s.argv[2])
+chop=int(s.argv[3])
 
 for pNum in range(1,pMax+1,1):
 	for qNum in range(0,pNum,1):
+
+		dictDIC
+
 		TriFilePath=basePath+'mcmcOut_%d_%d.dat'%(pNum,qNum)
 		TriFile=open(TriFilePath)
 		line=TriFile.readline()
@@ -60,9 +64,9 @@ for pNum in range(1,pMax+1,1):
 				plt.ylabel("$\\theta_{%d}$"%(j-pNum))
 			else:
 				plt.ylabel("$\sigma_{w}$")
-			plt.tight_layout()
+			#plt.tight_layout()
 			plt.draw()
-		plt.savefig(basepath+"mcmcWalkers_%d_%d.jpg"%(pNum,qNum),dpi=dotsPerInch)
+		plt.savefig(basePath+"mcmcWalkers_%d_%d.jpg"%(pNum,qNum),dpi=dotsPerInch)
 
 		samples=walkers[:,chop:,:].reshape((-1,ndim))
 		sampleDeviances = deviances[:,chop:].reshape((-1))
@@ -73,8 +77,8 @@ for pNum in range(1,pMax+1,1):
 			lbls.append("$\phi_{%d}$"%(i+1))
 		for i in range(qNum):
 			lbls.append("$\\theta_{%d}$"%(i+1))
-		print "DIC: %f"%(DIC)
-		fig=triangle.corner(samples,labels=lbls,show_titles=True,title_args={"fontsize": 12},quantiles=[0.16, 0.5, 0.84],plot_contours=True,plot_datapoints=True,plot_contour_lines=False,pcolor_cmap=cm.gist_earth)
+		#print "DIC: %f"%(DIC)
+		fig=triangle.corner(samples,labels=lbls,fig_title="DIC: %f"%(DIC),show_titles=True,title_args={"fontsize": 12},quantiles=[0.16, 0.5, 0.84],verbose=False,plot_contours=True,plot_datapoints=True,plot_contour_lines=False,pcolor_cmap=cm.gist_earth)
 		fig.savefig(basePath+"mcmcTriangles_%d_%d.jpg"%(pNum,qNum),dpi=dotsPerInch)
 		#plt.show()
 	
