@@ -81,15 +81,28 @@ int main() {
 	getline(cin, dummy);
 	string inputString;
 	while (doneYN == 0) {
-		getline(cin, dummy);
 		cout << endl;
 		cout << endl;
 
 		cout << "Values of the DLM parameters to be tested: ";
-		getline(cin,inputString);
+		/*getline(cin,inputString,'\n');
+		cin.ignore();
 		istringstream inputRecord(inputString);
 		for (int dimNum = 0; dimNum < pMaster+qMaster+1; ++dimNum) {
 			inputRecord >> ThetaMaster[dimNum];
+			}*/
+
+		cout << "Set the standard deviation of the disturbances (sigma_dist) such that sigma_dist > 0.0" << endl;
+		AcquireInput(cout,cin,"Set the value of sigma_dist: ","Invalid value.\n",ThetaMaster[0]);
+
+		for (int i = 1; i < 1+pMaster; i++) {
+			cout << "Set the value of phi_" << i;
+			AcquireInput(cout,cin,": ","Invalid value.\n",ThetaMaster[i]);
+			}
+
+		for (int i = 1+pMaster; i < 1+pMaster+qMaster; i++) {
+			cout << "Set the value of theta_" << i-pMaster;
+			AcquireInput(cout,cin,": ","Invalid value.\n",ThetaMaster[i]);
 			}
 
 		cout << "System is set to use the following parameters..." << endl;

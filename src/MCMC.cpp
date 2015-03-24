@@ -388,8 +388,8 @@ void EnsembleSampler::runMCMC(double* initPos) {
 				Now compute the logLike at the new location and fetch the LnLike at the old location.
 				*/
 				newLnLike = p2Func(currWalkerNewPos, p2FuncArgs);
-				//oldLnLike = p2LnLike[walkerNum + subSetNum*halfNumWalkers + (stepNum-1)*nwalkers];
-				oldLnLike = p2Func(currWalkerOldPos, p2FuncArgs);
+				oldLnLike = p2LnLike[walkerNum + subSetNum*halfNumWalkers + (stepNum-1)*nwalkers];
+				//oldLnLike = p2Func(currWalkerOldPos, p2FuncArgs);
 
 				#ifdef DEBUG_RUNMCMC
 				printf("runMCMC - threadNum: %d; stepNum: %d; Old LnLike: %f\n",threadNum,stepNum,oldLnLike);
