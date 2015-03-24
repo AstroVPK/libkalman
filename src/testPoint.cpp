@@ -81,6 +81,7 @@ int main() {
 	getline(cin, dummy);
 	string inputString;
 	while (doneYN == 0) {
+		getline(cin, dummy);
 		cout << endl;
 		cout << endl;
 
