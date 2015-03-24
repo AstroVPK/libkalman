@@ -1716,6 +1716,7 @@ double DLM::computeLnLike(int numPts, double* y, double* yerr, double* mask) {
 
 	mkl_domain_set_num_threads(1, MKL_DOMAIN_ALL);
 	double LnLike = 0.0;
+	double ptCounter = 0.0;
 	double v = 0.0;
 	double S = 0.0;
 	double SInv = 0.0;
@@ -1862,14 +1863,33 @@ double DLM::computeLnLike(int numPts, double* y, double* yerr, double* mask) {
 		cout << endl;
 		#endif
 
-		LnLike += -0.5*SInv*pow(v,2.0) -0.5*log2(S)/log2OfE; // LnLike += -0.5*v*v*SInv -0.5*log(det(S)) -0.5*log(2.0*pi)
+		#ifdef DEBUG_LNLIKE
+		cout << "LnLike: " << LnLike << endl;
+		cout << "Add LnLike: " << mask[i]*(-0.5*SInv*pow(v,2.0) -0.5*log2(S)/log2OfE) << endl;
+		cout << endl;
+		#endif
+
+		//LnLike += -0.5*SInv*pow(v,2.0) -0.5*log2(S)/log2OfE; // LnLike += -0.5*v*v*SInv -0.5*log(det(S)) -0.5*log(2.0*pi)
+		LnLike += mask[i]*(-0.5*SInv*pow(v,2.0) -0.5*log2(S)/log2OfE); // LnLike += -0.5*v*v*SInv -0.5*log(det(S)) -0.5*log(2.0*pi)
+		ptCounter += mask[i];
 
 		#ifdef DEBUG_LNLIKE
-		cout << "Add LnLike: " << -0.5*SInv*pow(v,2.0) -0.5*log2(S)/log2OfE << endl;
+		cout << "LnLike: " << LnLike << endl;
 		cout << endl;
 		#endif
 
 		}
-	LnLike += -0.5*numPts*log2Pi;
+	//LnLike += -0.5*numPts*log2Pi;
+	#ifdef DEBUG_LNLIKE
+	cout << "LnLike: " << LnLike << endl;
+	cout << "Adding " << -0.5*ptCounter*log2Pi << " to LnLike" << endl;
+	#endif
+
+	LnLike += -0.5*ptCounter*log2Pi;
+
+	#ifdef DEBUG_LNLIKE
+	cout << "LnLike: " << LnLike << endl;
+	#endif
+
 	return LnLike;
 	}

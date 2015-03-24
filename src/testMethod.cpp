@@ -246,6 +246,7 @@ int main() {
 	ofstream yFile;
 	yFile.open(yPath);
 	yFile.precision(16);
+	yFile << noshowpos << scientific << "numPts: " << numObs << endl;
 	for (int i = 0; i < numObs-1; i++) {
 		yFile << noshowpos << scientific << y[i] << " " << yerr[i] << endl;
 		}
@@ -265,7 +266,7 @@ int main() {
 	timeBegLnLike = dtime();
 	#endif
 
-	double LnLike = SystemMaster.computeLnLike(numObs, y, yerr);
+	double LnLike = SystemMaster.computeLnLike(numObs, y, yerr, mask);
 
 	#ifdef TIME_LNLIKE
 	#pragma omp barrier
@@ -329,6 +330,7 @@ int main() {
 	Data.numPts = numObs;
 	Data.y = y;
 	Data.yerr = yerr;
+	Data.mask = mask;
 
 	//DLM* Systems = static_cast<DLM*>(_mm_malloc(nthreads*sizeof(DLM),64));
 
@@ -347,7 +349,10 @@ int main() {
 	DLM Systems[nthreads];
 
 	for (int p = pMax; p > 0; --p) {
-		for (int q = p-1; q > -1; q--) {
+		for (int q = p-1; q > -1; --q) {
+
+	//for (int p = pMax; p > 1; --p) {
+		//for (int q = p-1; q > -1; --q) {
 
 			cout << endl;
 			cout << "Running MCMC for p = " << p << " and q = " << q << endl;

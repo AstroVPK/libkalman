@@ -56,10 +56,10 @@ int main() {
 
 	int goodYN = 0;
 	while (goodYN == 0) {
-		while (ThetaMaster[0] <= 0.0) {
-			cout << "Set the standard deviation of the disturbances (sigma_dist) such that sigma_dist > 0.0" << endl;
+		//while (ThetaMaster[0] == 0.0) {
+			cout << "Set the standard deviation of the disturbances (sigma_dist) such that sigma_dist != 0.0" << endl;
 			AcquireInput(cout,cin,"Set the value of sigma_dist: ","Invalid value.\n",ThetaMaster[0]);
-			}
+			//}
 
 		string inStr;
 		for (int i = 1; i < 1+pMaster; i++) {
@@ -132,9 +132,9 @@ int main() {
 	AcquireInput(cout,cin,"Number of observations: ","Invalid value.\n",numObs);
 	double noiseSigma = 0.0;
 	do {
-		cout << "Set the standard deviation of the noise (sigma_noise) such that sigma_noise > 0.0" << endl;
+		cout << "Set the standard deviation of the noise (sigma_noise) such that sigma_noise != 0.0" << endl;
 		AcquireInput(cout,cin,"Observation noise sigma_noise: ","Invalid value.\n",noiseSigma);
-		} while (noiseSigma <= 0.0);
+		} while (noiseSigma == 0.0);
 	double* distRand = static_cast<double*>(_mm_malloc(numObs*sizeof(double),64));
 	double* noiseRand = static_cast<double*>(_mm_malloc(numObs*sizeof(double),64));
 	double* y = static_cast<double*>(_mm_malloc(numObs*sizeof(double),64));

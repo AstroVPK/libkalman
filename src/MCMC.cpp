@@ -22,7 +22,7 @@
 #endif
 
 //#define DEBUG_INIT
-//#define DEBUG_RUNMCMC
+#define DEBUG_RUNMCMC
 //#define DEBUG_RUNMCMC_DEEP
 //#define DEBUG_CTORENSEMBLESAMPLER
 //#define DEBUG_DTORENSEMBLESAMPLER
@@ -333,7 +333,7 @@ void EnsembleSampler::runMCMC(double* initPos) {
 				//printf("stepNum: %d; walkerNum: %d; threadNum: %d; Address of currWalkerOldPos: %p\n",stepNum,walkerNum,threadNum,currWalkerOldPos);
 
 				#ifdef DEBUG_RUNMCMC
-				printf("runMCMC - threadNum: %d; stepNum: %d; currWalkerNum: %d\n",threadNum,stepNum,walkerNum);
+				printf("runMCMC - threadNum: %d; stepNum: %d; currWalkerNum: %d\n",threadNum,stepNum,walkerNum+halfNumWalkers*subSetNum);
 				printf("runMCMC - threadNum: %d; stepNum: %d; Old Location: ",threadNum,stepNum);
 				for (int i = 0; i < numDims; i++) {
 					printf("%f ",currWalkerOldPos[i]);
@@ -351,7 +351,7 @@ void EnsembleSampler::runMCMC(double* initPos) {
 				compWalkerOldPos = &compSubSetOld[p2WalkerChoice[(stepNum-1)*nwalkers + subSetNum*halfNumWalkers + walkerNum]*ndims];
 
 				#ifdef DEBUG_RUNMCMC
-				printf("runMCMC - threadNum: %d; stepNum: %d; compWalkerNum: %d\n",threadNum,stepNum,p2WalkerChoice[(stepNum-1)*numWalkers + subSetNum*halfNumWalkers + walkerNum]);
+				printf("runMCMC - threadNum: %d; stepNum: %d; compWalkerNum: %d\n",threadNum,stepNum,p2WalkerChoice[(stepNum-1)*numWalkers + subSetNum*halfNumWalkers + walkerNum]+halfNumWalkers*((subSetNum+1)%2));
 				printf("runMCMC - threadNum: %d; stepNum: %d; Old Location: ",threadNum,stepNum);
 				for (int i = 0; i < numDims; i++) {
 					printf("%f ",compWalkerOldPos[i]);
@@ -376,7 +376,7 @@ void EnsembleSampler::runMCMC(double* initPos) {
 					}
 
 				#ifdef DEBUG_RUNMCMC
-				printf("runMCMC - threadNum: %d; stepNum: %d; currWalkerNum: %d\n",threadNum,stepNum,walkerNum);
+				printf("runMCMC - threadNum: %d; stepNum: %d; currWalkerNum: %d\n",threadNum,stepNum,walkerNum+halfNumWalkers*subSetNum);
 				printf("runMCMC - threadNum: %d; stepNum: %d; New Location: ",threadNum,stepNum);
 				for (int i = 0; i < ndims; i++) {
 					printf("%f ",currWalkerNewPos[i]);
@@ -388,7 +388,8 @@ void EnsembleSampler::runMCMC(double* initPos) {
 				Now compute the logLike at the new location and fetch the LnLike at the old location.
 				*/
 				newLnLike = p2Func(currWalkerNewPos, p2FuncArgs);
-				oldLnLike = p2LnLike[walkerNum + subSetNum*halfNumWalkers + (stepNum-1)*nwalkers];
+				//oldLnLike = p2LnLike[walkerNum + subSetNum*halfNumWalkers + (stepNum-1)*nwalkers];
+				oldLnLike = p2Func(currWalkerOldPos, p2FuncArgs);
 
 				#ifdef DEBUG_RUNMCMC
 				printf("runMCMC - threadNum: %d; stepNum: %d; Old LnLike: %f\n",threadNum,stepNum,oldLnLike);
@@ -435,7 +436,7 @@ void EnsembleSampler::runMCMC(double* initPos) {
 					}
 
 				#ifdef DEBUG_RUNMCMC
-				printf("runMCMC - threadNum: %d; stepNum: %d; currWalkerNum: %d\n",threadNum,stepNum,walkerNum);
+				printf("runMCMC - threadNum: %d; stepNum: %d; currWalkerNum: %d\n",threadNum,stepNum,walkerNum+halfNumWalkers*subSetNum);
 				printf("runMCMC - threadNum: %d; stepNum: %d; New Location: ",threadNum,stepNum);
 				for (int i = 0; i < numDims; i++) {
 					printf("%f ",currWalkerNewPos[i]);
