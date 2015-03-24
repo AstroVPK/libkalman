@@ -168,10 +168,10 @@ int main() {
 	Equatorial keplerPos = Equatorial(loc);
 	KeplerObj newguy(keplerID, keplerPath, keplerPos);
 	bool forceCalibrate = false;
-	//AcquireInput(cout,cin,"Force calibration? (Recommended that you don't calibrate more than once ever!): ","Invalid value.\n",forceCalibrate);
+	AcquireInput(cout,cin,"Force calibration? (Recommended that you don't calibrate more than once ever!): ","Invalid value.\n",forceCalibrate);
 	tuple<vector<array<int,2>>,vector<array<double,5>>> dataArray;
 	int stitchMethod = -1;
-	/*if (forceCalibrate == true) {
+	if (forceCalibrate == true) {
 		do {
 			cout << "Stitching method to use?" << endl;
 			cout << "[0]: No stitching" << endl;
@@ -179,8 +179,8 @@ int main() {
 			cout << "[2]: Match averaged points across quarters" << endl;
 			AcquireInput(cout,cin,"stitchMethod: ","Invalid value!\n",stitchMethod);
 			} while ((stitchMethod < 0) && (stitchMethod > 2));
-		}*/
-	dataArray = newguy.getData(false,2);
+		}
+	dataArray = newguy.getData(forceCalibrate,stitchMethod);
 	newguy.setProperties(dataArray);
 	int numCadences = newguy.getNumCadences();
 	double* keplerMask = static_cast<double*>(_mm_malloc(numCadences*sizeof(double),64));
