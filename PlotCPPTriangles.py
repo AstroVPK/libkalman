@@ -79,7 +79,7 @@ for pNum in range(1,pMax+1,1):
 		for k in range(ndim):
 			plt.subplot(ndim,1,k+1)
 			for j in range(nwalkers):
-				plt.plot(walkers[:,j,k],c='#000000',alpha=0.025,zorder=-5)
+				plt.plot(walkers[:,j,k],c='#000000',alpha=0.05,zorder=-5)
 			plt.fill_between(stepArr[:],medianWalker[:,k]+medianDevWalker[:,k],medianWalker[:,k]-medianDevWalker[:,k],color='#ff0000',edgecolor='#ff0000',alpha=0.5,zorder=5)
 			plt.plot(stepArr[:],medianWalker[:,k],c='#dc143c',linewidth=1,zorder=10)
 			plt.xlabel('$step$')

@@ -205,14 +205,18 @@ int main() {
 	offSet = startCadence-firstCadence;
 	double* mask = static_cast<double*>(_mm_malloc(numObs*sizeof(double),64));
 	for (int obsCounter = 0; obsCounter < numObs; ++obsCounter) {
+
 		#ifdef DEBUG_MASK
 		printf("keplerMask[%d]: %f\n",obsCounter+offSet,keplerMask[obsCounter+offSet]);
 		#endif
+
 		mask[obsCounter] = keplerMask[obsCounter+offSet];
+
 		#ifdef DEBUG_MASK
 		printf("mask[%d]: %f\n",obsCounter,mask[obsCounter]);
 		#endif
-	}
+
+		}
 	_mm_free(keplerMask);
 
 	#ifdef DEBUG_MASK
@@ -348,11 +352,11 @@ int main() {
 
 	DLM Systems[nthreads];
 
-	for (int p = pMax; p > 0; --p) {
-		for (int q = p-1; q > -1; --q) {
-
-	//for (int p = pMax; p > 1; --p) {
+	//for (int p = pMax; p > 0; --p) {
 		//for (int q = p-1; q > -1; --q) {
+
+	for (int p = pMax; p > 1; --p) {
+		for (int q = p-1; q > 0; --q) {
 
 			cout << endl;
 			cout << "Running MCMC for p = " << p << " and q = " << q << endl;

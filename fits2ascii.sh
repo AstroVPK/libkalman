@@ -1,4 +1,6 @@
-for object in ~/Desktop/Kepler/*/; do
+read -e -p "Path to Kepler data: " -i "~/Documents/Research/Kepler/" keplerPath
+cd ${keplerPath}
+for object in ./*/; do
     cd "${object}"llc
     cp * .. 
     cd .. 
@@ -8,8 +10,8 @@ fb=${f##*/}
 fb=${fb%.fits}
 fb=$fb.dat
 #echo $fb
-java -jar ~/topcat-full.jar -stilts tcopy ${f##*/} ${fb} ofmt=ascii
+topcat -stilts tcopy ${f##*/} ${fb} ofmt=ascii
     done 
-    #rm *fits
+    rm *fits
 
 done
