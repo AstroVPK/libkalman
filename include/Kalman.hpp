@@ -6,6 +6,8 @@
 
 using namespace std;
 
+double calcLnLike(const vector<double> &x, vector<double>& grad, void* p2Args);
+
 double calcLnLike(double* walkerPos, void* vdPtr2LnLikeArgs);
 
 class DLM {
@@ -34,6 +36,7 @@ public:
 	double* ARwi;
 	double* MAwr;
 	double* MAwi;
+	double* Theta;
 	double* I;
 	double* F;
 	double* FKron;

@@ -215,7 +215,7 @@ for i in range(numPts):
 	if (mask[i]==1.0):
 		plt.errorbar(t[i,1],y[i,0],yerr=y[i,1],c='#e66101',fmt='.',marker=".",capsize=0,zorder=-5)
 plt.plot(t[:,1],x[:,0],c='#5e3c99',zorder=10)
-plt.fill_between(t[:,1],x[:,0]+x[:,1],x[:,0]-x[:,1],facecolor='#b2abd2',edgecolor='none',alpha=0.1,zorder=5)
+plt.fill_between(t[:,1],x[:,0]+x[:,1],x[:,0]-x[:,1],facecolor='#b2abd2',edgecolor='none',alpha=1,zorder=5)
 plt.xlim(t[0,1],t[-1,1])
 plt.ylim(yMin,yMax)
 #plt.tight_layout()

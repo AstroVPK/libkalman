@@ -12,6 +12,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <nlopt.hpp>
 #include "Acquire.hpp"
 #include "Kalman.hpp"
 #include "Universe.hpp"
@@ -24,6 +25,7 @@
 //#define DEBUG_MASK
 
 using namespace std;
+using namespace nlopt;
 
 int main() {
 	cout.clear();
@@ -286,7 +288,7 @@ int main() {
 	cout << endl;
 	cout << endl;
 
-	cout << "Starting MCMC Phase" << endl;
+	cout << "Starting MCMC Phase." << endl;
 	cout << endl;
 
 	int pMax = 0, qMax = 0;
@@ -305,7 +307,7 @@ int main() {
 		} while (nsteps <= 0);
 
 	setSeedsYN = 0;
-	unsigned int zSSeed = 2229588325, walkerSeed = 3767076656, moveSeed = 2867335446, initSeed = 3684614774;
+	unsigned int zSSeed = 2229588325, walkerSeed = 3767076656, moveSeed = 2867335446, xSeed = 1413995162,initSeed = 3684614774;
 	AcquireInput(cout,cin,"Supply seeds for MCMC? 1/0: ","Invalid value.\n",setSeedsYN);
 	if (setSeedsYN) {
 		zSSeed = 0, walkerSeed = 0, moveSeed = 0, initSeed = 0;
@@ -321,6 +323,10 @@ int main() {
 			cout << "All seeds must be strictly-positive integers (i.e. of type unsigned int - 10 digits max)." << endl;
 			AcquireInput(cout,cin,"Bernoulli move seed: ","Invalid value.\n",moveSeed);
 			} while (moveSeed <= 0);
+		do {
+			cout << "All seeds must be strictly-positive integers (i.e. of type unsigned int - 10 digits max)." << endl;
+			AcquireInput(cout,cin,"Initital position seed for NLOpt: ","Invalid value.\n",xSeed);
+			} while (xSeed <= 0);
 		do {
 			cout << "All seeds must be strictly-positive integers (i.e. of type unsigned int - 10 digits max)." << endl;
 			AcquireInput(cout,cin,"Initital positions seed: ","Invalid value.\n",initSeed);
@@ -346,21 +352,25 @@ int main() {
 	void* p2Args = nullptr;
 
 	double* initPos = nullptr;
-	VSLStreamStatePtr initStream;
+	double* xTemp = nullptr;
+	vector<double> x;
+	VSLStreamStatePtr xStream, initStream;
 	string myPath;
 	ostringstream convertP, convertQ;
-
+	int maxEvals = 1000;
+	double fTol = 0.01;
 	DLM Systems[nthreads];
 
-	//for (int p = pMax; p > 0; --p) {
-		//for (int q = p-1; q > -1; --q) {
+	for (int p = pMax; p > 0; --p) {
+		for (int q = p-1; q > -1; --q) {
 
-	for (int p = pMax; p > 1; --p) {
-		for (int q = p-1; q > 0; --q) {
+	//for (int p = pMax; p > 1; --p) {
+		//for (int q = p-1; q > 0; --q) {
 
 			cout << endl;
+
 			cout << "Running MCMC for p = " << p << " and q = " << q << endl;
-			int threadNum = omp_get_thread_num();
+			threadNum = omp_get_thread_num();
 			//printf("testMethod - threadNum: %d\n",threadNum);
 
 			ndims = p+q+1;
@@ -377,12 +387,57 @@ int main() {
 
 			p2Args = &Args;
 
+			cout << "Finding test minima using NLOpt" << endl;
+			xTemp = static_cast<double*>(_mm_malloc(ndims*sizeof(double),64));
+			vslNewStream(&xStream, VSL_BRNG_SFMT19937, xSeed);
+			bool goodPoint = false;
+			do {
+				vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, xStream, ndims, xTemp, 0.0, 1e-3);
+				Systems[threadNum].setDLM(xTemp);
+				Systems[threadNum].resetState();
+				if (Systems[threadNum].checkARMAParams(Systems[threadNum].Theta) == 1) {
+					LnLike = Systems[threadNum].computeLnLike(numObs, y, yerr, mask);
+					goodPoint = true;
+					} else {
+					LnLike = -HUGE_VAL;
+					goodPoint = false;
+					}
+				} while (goodPoint == false);
+			vslDeleteStream(&xStream);
+
+			x.clear();
+			for (int dimCtr = 0; dimCtr < ndims; ++dimCtr) {
+				x.push_back(xTemp[dimCtr]);
+				}
+			_mm_free(xTemp);
+
+			opt opt(nlopt::LN_COBYLA, p+q+1);
+			opt.set_max_objective(calcLnLike, p2Args);
+			opt.set_maxeval(maxEvals);
+			opt.set_ftol_rel(fTol);
+			double max_LnLike = 0.0;
+			result yesno = opt.optimize(x, max_LnLike);
+
+			cout << "NLOpt minimization done!" << endl;
+			cout << "Best ARMA parameter values: ";
+			for (int i = 0; i < (p+q+1); ++i) {
+				cout << x[i] << " ";
+				}
+			cout << endl;
+			cout << "Best LnLike: " << max_LnLike << endl;
+
 			EnsembleSampler newEnsemble = EnsembleSampler(ndims, nwalkers, nsteps, nthreads, 2.0, calcLnLike, p2Args, zSSeed, walkerSeed, moveSeed);
 
 			initPos = static_cast<double*>(_mm_malloc(nwalkers*ndims*sizeof(double),64));
 			vslNewStream(&initStream, VSL_BRNG_SFMT19937, initSeed);
-			vslSkipAheadStream(initStream, nwalkers*(pMax+qMax+1)*(p*qMax+q));
+			//vslSkipAheadStream(initStream, nwalkers*(pMax+qMax+1)*(p*qMax+q));
 			vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, initStream, nwalkers*ndims, initPos, 0.0, 1e-3);
+			for (int walkerNum = 0; walkerNum < nwalkers; ++walkerNum) {
+				#pragma omp simd
+				for (int dimNum = 0; dimNum < ndims; ++dimNum) {
+					initPos[walkerNum*ndims + dimNum] += x[dimNum];
+					}
+				}
 			vslDeleteStream(&initStream);
 
 			cout << "Running MCMC..." << endl;

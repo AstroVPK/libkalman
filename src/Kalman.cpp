@@ -6,6 +6,7 @@
 #include <mkl.h>
 #include <mkl_types.h>
 #include <iostream>
+#include <vector>
 #include "Constants.hpp"
 #include "Kalman.hpp"
 #include <stdio.h>
@@ -27,12 +28,68 @@
 //#define DEBUG_DEALLOCATEDLM
 //#define DEBUG_DEALLOCATEDLM_DEEP
 //#define DEBUG_RESETSTATE
+//#define DEBUG_CALCLNLIKE
 
 #ifdef WRITE
 #include <fstream>
 #endif
 
 using namespace std;
+
+double calcLnLike(const vector<double> &x, vector<double>& grad, void* p2Args) {
+	if (!grad.empty()) {
+		for (int i = 0; i < x.size(); ++i) {
+			grad[i] = 0.0;
+			}
+		}
+
+	int threadNum = omp_get_thread_num();
+
+	LnLikeArgs* ptr2Args = reinterpret_cast<LnLikeArgs*>(p2Args);
+	LnLikeArgs Args = *ptr2Args;
+
+	int numThreads = Args.numThreads;
+	LnLikeData Data = Args.Data;
+	DLM* Systems = Args.Systems;
+
+	int numPts = Data.numPts;
+	double LnLike = 0;
+	double* y = Data.y;
+	double* yerr = Data.yerr;
+	double* mask = Data.mask;
+
+	#ifdef DEBUG_CALCLNLIKE
+	printf("calcLnLike - threadNum: %d; Location: ",threadNum);
+	#endif
+
+	for (int i = 0; i < (Systems[threadNum].p+Systems[threadNum].q+1); ++i) {
+		Systems[threadNum].Theta[i] = x[i];
+
+		#ifdef DEBUG_CALCLNLIKE
+		printf("%f ",Systems[threadNum].Theta[i]);
+		#endif
+
+		}
+
+	#ifdef DEBUG_CALCLNLIKE
+	printf("\n");
+	#endif
+
+	Systems[threadNum].setDLM(Systems[threadNum].Theta);
+	Systems[threadNum].resetState();
+	if (Systems[threadNum].checkARMAParams(Systems[threadNum].Theta) == 1) {
+		LnLike = Systems[threadNum].computeLnLike(numPts, y, yerr, mask);
+		} else {
+		LnLike = -HUGE_VAL;
+		}
+
+	#ifdef DEBUG_CALCLNLIKE
+	printf("LnLike: %f\n",LnLike);
+	#endif
+
+	return LnLike;
+
+	}
 
 double calcLnLike(double* walkerPos, void* func_args) {
 
@@ -214,6 +271,7 @@ DLM::~DLM() {
 	ARwi = nullptr;
 	MAwr = nullptr;
 	MAwi = nullptr;
+	Theta = nullptr;
 	I = nullptr;
 	F = nullptr;
 	FKron = nullptr;
@@ -320,6 +378,12 @@ void DLM::allocDLM(int numP, int numQ) {
 			}
 		}
 	allocated += q*q*sizeof(double);
+
+	Theta = static_cast<double*>(_mm_malloc((p+q+1)*sizeof(double),64));
+	for (int i = 0; i < (p+q+1); ++i) {
+		Theta[i] = 0.0;
+		}
+	allocated += (p+q+1)*sizeof(double);
 
 	I = static_cast<double*>(_mm_malloc(m*m*sizeof(double),64));
 	F = static_cast<double*>(_mm_malloc(m*m*sizeof(double),64));
@@ -621,6 +685,10 @@ void DLM::deallocDLM() {
 	stepNum += 1;
 	#endif
 
+	if (Theta) {
+		_mm_free(Theta);
+		Theta = nullptr;
+		}
 
 	if (I) {
 		_mm_free(I);
