@@ -1,5 +1,5 @@
 read -e -p "Path to Kepler data: " -i "~/Documents/Research/Kepler/" keplerPath
-cd ${keplerPath}
+cd "${keplerPath}"
 for object in ./*/; do
     cd "${object}"llc
     cp * .. 
