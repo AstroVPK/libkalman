@@ -73,6 +73,7 @@ double calcLnLike(const vector<double> &x, vector<double>& grad, void* p2Args) {
 
 	#ifdef DEBUG_CALCLNLIKE
 	printf("\n");
+	fflush(0);
 	#endif
 
 	Systems[threadNum].setDLM(Systems[threadNum].Theta);
@@ -85,6 +86,7 @@ double calcLnLike(const vector<double> &x, vector<double>& grad, void* p2Args) {
 
 	#ifdef DEBUG_CALCLNLIKE
 	printf("LnLike: %f\n",LnLike);
+	fflush(0);
 	#endif
 
 	return LnLike;

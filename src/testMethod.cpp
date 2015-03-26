@@ -411,7 +411,7 @@ int main() {
 				}
 			_mm_free(xTemp);
 
-			opt opt(nlopt::LN_COBYLA, p+q+1);
+			opt opt(nlopt::LN_BOBYQA, p+q+1);
 			opt.set_max_objective(calcLnLike, p2Args);
 			opt.set_maxeval(maxEvals);
 			opt.set_ftol_rel(fTol);
