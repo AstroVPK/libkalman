@@ -36,6 +36,114 @@
 
 using namespace std;
 
+double calcARMALnLike(const vector<double> &x, vector<double>& grad, void* p2Args) {
+	if (!grad.empty()) {
+		for (int i = 0; i < x.size(); ++i) {
+			grad[i] = 0.0;
+			}
+		}
+
+	int threadNum = omp_get_thread_num();
+
+	LnLikeArgs* ptr2Args = reinterpret_cast<LnLikeArgs*>(p2Args);
+	LnLikeArgs Args = *ptr2Args;
+
+	int numThreads = Args.numThreads;
+	LnLikeData Data = Args.Data;
+	DLM* Systems = Args.Systems;
+
+	int numPts = Data.numPts;
+	double LnLike = 0;
+	double* y = Data.y;
+	double* yerr = Data.yerr;
+	double* mask = Data.mask;
+
+	#ifdef DEBUG_CALCLNLIKE
+	printf("calcLnLike - threadNum: %d; Location: ",threadNum);
+	#endif
+
+	for (int i = 0; i < (Systems[threadNum].p+Systems[threadNum].q+1); ++i) {
+		Systems[threadNum].Theta[i] = x[i];
+
+		#ifdef DEBUG_CALCLNLIKE
+		printf("%f ",Systems[threadNum].Theta[i]);
+		#endif
+
+		}
+
+	#ifdef DEBUG_CALCLNLIKE
+	printf("\n");
+	fflush(0);
+	#endif
+
+	Systems[threadNum].setDLM(Systems[threadNum].Theta);
+	Systems[threadNum].resetState();
+	if (Systems[threadNum].checkARMAParams(Systems[threadNum].Theta) == 1) {
+		LnLike = 0.0;
+		} else {
+		LnLike = -HUGE_VAL;
+		}
+
+	#ifdef DEBUG_CALCLNLIKE
+	printf("LnLike: %f\n",LnLike);
+	fflush(0);
+	#endif
+
+	return LnLike;
+
+	}
+
+double calcARMALnLike(double* walkerPos, void* func_args) {
+
+	int threadNum = omp_get_thread_num();
+
+	LnLikeArgs* ptr2Args = reinterpret_cast<LnLikeArgs*>(func_args);
+	LnLikeArgs Args = *ptr2Args;
+
+	int numThreads = Args.numThreads;
+	LnLikeData Data = Args.Data;
+	DLM* Systems = Args.Systems;
+
+	int numPts = Data.numPts;
+	double* y = Data.y;
+	double* yerr = Data.yerr;
+	double* mask = Data.mask;
+
+	double LnLike = 0.0;
+
+	Systems[threadNum].setDLM(walkerPos);
+	Systems[threadNum].resetState();
+	//Systems[threadNum].resetState(1e7);
+
+	if (Systems[threadNum].checkARMAParams(walkerPos) == 1) {
+
+		#ifdef DEBUG_FUNC
+		printf("calcLnLike = threadNum: %d; walkerPos: ",threadNum);
+		for (int dimNum = 0; dimNum < Systems[threadNum].p+Systems[threadNum].q+1; dimNum++) {
+			printf("%f ",walkerPos[dimNum]);
+			}
+		printf("\n");
+		printf("calcLnLike - threadNum: %d; System good!\n",threadNum);
+		#endif
+
+		LnLike = 0.0;
+		} else {
+
+		#ifdef DEBUG_FUNC
+		printf("calcLnLike = threadNum: %d; walkerPos: ",threadNum);
+		for (int dimNum = 0; dimNum < Systems[threadNum].p+Systems[threadNum].q+1; dimNum++) {
+			printf("%f ",walkerPos[dimNum]);
+			}
+		printf("\n");
+		printf("calcLnLike - threadNum: %d; System bad!\n",threadNum);
+		#endif
+
+		LnLike = -HUGE_VAL;
+		}
+	return LnLike;
+
+	}
+
 double calcLnLike(const vector<double> &x, vector<double>& grad, void* p2Args) {
 	if (!grad.empty()) {
 		for (int i = 0; i < x.size(); ++i) {
@@ -1188,7 +1296,7 @@ int DLM::checkARMAParams(double* Theta) {
 
 	if (distSigma > 0.0) {
 		isReasonable = 1;
-		if ((p == 1) and (Theta[1] >= 1.0)) { // Single AR component. Just check if < 1.
+		if ((p == 1) and ((Theta[1] >= 1.0) or (Theta[1] <= -1.0))) { // Single AR component. Just check if -1 < phi_1 < 1.
 			isStable = 0;
 		} else if (p > 1) { // Only have to do this if AR Poly is atleast 2nd Order.
 
@@ -1284,7 +1392,7 @@ int DLM::checkARMAParams(double* Theta) {
 	printf("\n");
 	#endif
 
-		if ((q == 1) and (Theta[p+1] > 1.0)) { // Single MA component. Just check if < 1.
+		if ((q == 1) and ((Theta[p+1] >= 1.0) or (Theta[p+1] <= -1.0))) { // Single MA component. Just check if < 1.
 			isInvertible = 0;
 		} else if (q > 1) { // Only have to do this if MA Poly is atleast 2nd Order.
 

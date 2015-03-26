@@ -30,8 +30,8 @@ using namespace nlopt;
 int main() {
 	cout.clear();
 	cout << endl;
-	cout << "Program: testMethod" << endl;
-	cout << "Purpose: Program to test Kalman filtering method (end-to-end test)." << endl;
+	cout << "Program: plotARMARegions" << endl;
+	cout << "Purpose: Program to visualize the valid parts of the ARMA parameter space." << endl;
 	cout << "Author: Vishal Kasliwal" << endl;
 	cout << "Institution: Drexel university, Department of Physics" << endl;
 	cout << "Email: vpk24@drexel.edu" << endl;
@@ -42,11 +42,6 @@ int main() {
 	basePath += "/";
 	cout << "Output directory: " << basePath << endl;
 
-	string keplerPath;
-	AcquireDirectory(cout,cin,"Full path to Kepler directory: ","Invalid path!\n",keplerPath);
-	keplerPath += "/";
-	cout << "Kepler directory: " << keplerPath << endl;
-
 	int numHost = sysconf(_SC_NPROCESSORS_ONLN);
 	cout << numHost << " hardware thread contexts detected." << endl;
 	int nthreads = 0;
@@ -55,8 +50,8 @@ int main() {
 	omp_set_num_threads(nthreads);
 	int threadNum = omp_get_thread_num();
 
-	cout << "Create a test light curve with known parameters - make an ARMA light curve with p AR and q MA co-efficients." << endl;
-	int pMaster = 0, qMaster = 0;
+	cout << "Check ARMA models with p AR and q MA co-efficients." << endl;
+	/*int pMaster = 0, qMaster = 0;
 	while (pMaster < 1) {
 		AcquireInput(cout,cin,"Number of AR coefficients p: ","Invalid value.\n",pMaster);
 	}
@@ -117,7 +112,7 @@ int main() {
 		cout << "phi_" << i << ": " << ThetaMaster[i] << endl;
 		}
 	for (int i = 1+pMaster; i < 1+pMaster+qMaster; i++) {
-		cout << "theta_" << i-pMaster << ": " << ThetaMaster[i] << endl;
+		cout << "theta_" << i << ": " << ThetaMaster[i] << endl;
 		}
 	cout << endl;
 
@@ -286,7 +281,7 @@ int main() {
 	//printf("testMethod - Address of SystemMaster: %p\n",&SystemMaster);
 	SystemMaster.deallocDLM();
 	cout << endl;
-	cout << endl;
+	cout << endl;*/
 
 	cout << "Starting MCMC Phase." << endl;
 	cout << endl;
@@ -306,7 +301,7 @@ int main() {
 		AcquireInput(cout,cin,"Number of steps to take: ","Invalid value.\n",nsteps);
 		} while (nsteps <= 0);
 
-	setSeedsYN = 0;
+	bool setSeedsYN = 0;
 	unsigned int zSSeed = 2229588325, walkerSeed = 3767076656, moveSeed = 2867335446, xSeed = 1413995162,initSeed = 3684614774;
 	AcquireInput(cout,cin,"Supply seeds for MCMC? 1/0: ","Invalid value.\n",setSeedsYN);
 	if (setSeedsYN) {
@@ -337,10 +332,10 @@ int main() {
 	int ndims = 1;
 
 	LnLikeData Data;
-	Data.numPts = numObs;
-	Data.y = y;
-	Data.yerr = yerr;
-	Data.mask = mask;
+	Data.numPts = 0;
+	Data.y = nullptr;
+	Data.yerr = nullptr;
+	Data.mask = nullptr;
 
 	//DLM* Systems = static_cast<DLM*>(_mm_malloc(nthreads*sizeof(DLM),64));
 
@@ -358,7 +353,7 @@ int main() {
 	string myPath;
 	ostringstream convertP, convertQ;
 	int maxEvals = 1000;
-	double xTol = 0.01;
+	double xTol = 0.01, LnLike = -HUGE_VAL;
 	DLM Systems[nthreads];
 
 	for (int p = pMax; p > 0; --p) {
@@ -396,7 +391,7 @@ int main() {
 				Systems[threadNum].setDLM(xTemp);
 				Systems[threadNum].resetState();
 				if (Systems[threadNum].checkARMAParams(Systems[threadNum].Theta) == 1) {
-					LnLike = Systems[threadNum].computeLnLike(numObs, y, yerr, mask);
+					LnLike = 0.0;
 					goodPoint = true;
 					} else {
 					LnLike = -HUGE_VAL;
@@ -426,7 +421,7 @@ int main() {
 			cout << endl;
 			cout << "Best LnLike: " << max_LnLike << endl;
 
-			EnsembleSampler newEnsemble = EnsembleSampler(ndims, nwalkers, nsteps, nthreads, 2.0, calcLnLike, p2Args, zSSeed, walkerSeed, moveSeed);
+			EnsembleSampler newEnsemble = EnsembleSampler(ndims, nwalkers, nsteps, nthreads, 2.0, calcARMALnLike, p2Args, zSSeed, walkerSeed, moveSeed);
 
 			initPos = static_cast<double*>(_mm_malloc(nwalkers*ndims*sizeof(double),64));
 			vslNewStream(&initStream, VSL_BRNG_SFMT19937, initSeed);
@@ -485,10 +480,5 @@ int main() {
 
 	cout << endl;
 	cout << "Deleting Systems..." << endl;
-	cout << "Program exiting...Have a nice day!" << endl; 
-
-	//_mm_free(Systems);
-	_mm_free(y);
-	_mm_free(yerr);
-	_mm_free(ThetaMaster);
+	cout << "Program exiting...Have a nice day!" << endl;
 	}

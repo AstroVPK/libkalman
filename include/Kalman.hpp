@@ -6,6 +6,10 @@
 
 using namespace std;
 
+double calcARMALnLike(const vector<double> &x, vector<double>& grad, void* p2Args);
+
+double calcARMALnLike(double* walkerPos, void* vdPtr2LnLikeArgs);
+
 double calcLnLike(const vector<double> &x, vector<double>& grad, void* p2Args);
 
 double calcLnLike(double* walkerPos, void* vdPtr2LnLikeArgs);
