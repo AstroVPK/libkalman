@@ -26,7 +26,7 @@ s1=2
 s2=9
 fwid=13
 fhgt=13
-dotsPerInch=300
+dotsPerInch=600
 nbins=100
 set_plot_params(fontsize=12)
 
