@@ -132,15 +132,19 @@ for pNum in range(1,pMax+1,1):
 		del medianDevWalker
 
 sortedDICVals=sorted(dictDIC.items(),key=operator.itemgetter(1))
-line="Best models (descending order).\n"
-resultFile.write(line)
-for DICVal in sortedDICVals:
-	line="%s: %s\n"%(DICVal[0],DICVal[1])
-	resultFile.write(line);
-resultFile.close()
-
 pBest=int(sortedDICVals[0][0].split()[0])
 qBest=int(sortedDICVals[0][0].split()[1])
+line="Model Appropriateness (in descending order of appropriateness) & Relative Likelihood (i.e. Relative Likelihood of Minimal Infrmation Loss)\n"
+resultFile.write(line)
+line="Model       DIC Value    Relative Likelihood\n"
+resultFile.write(line)
+line="-----       ---------    -------------------\n"
+resultFile.write(line)
+for i in range(len(sortedDICVals)):
+	RelProbOfMinInfLoss=100.0*m.exp(0.5*(float(sortedDICVals[0][1])-float(sortedDICVals[i][1])))
+	line='{:>4}   {:> 13.3f}    {:> 18.2f}%\n'.format(sortedDICVals[i][0],float(sortedDICVals[i][1]),RelProbOfMinInfLoss)
+	resultFile.write(line);
+resultFile.close()
 
 sigmaBest=fiftiethQ["%d %d sigma_w"%(pBest,qBest)]
 phiBest=list()

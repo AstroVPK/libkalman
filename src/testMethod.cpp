@@ -9,10 +9,16 @@
 #include <array>
 #include <tuple>
 #include <string>
+#include <cstring>
 #include <sstream>
 #include <iostream>
 #include <fstream>
 #include <nlopt.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/system/system_error.hpp>
+#include <boost/system/linux_error.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/io/detail/quoted_manip.hpp>
 #include "Acquire.hpp"
 #include "Kalman.hpp"
 #include "Universe.hpp"
@@ -25,6 +31,7 @@
 //#define DEBUG_MASK
 
 using namespace std;
+//using namespace boost::filesystem;
 using namespace nlopt;
 
 int main() {
@@ -38,14 +45,69 @@ int main() {
 	cout << endl;
 
 	string basePath;
-	AcquireDirectory(cout,cin,"Full path to output directory: ","Invalid path!\n",basePath);
+	AcquireDirectory(cout,cin,"Path to output directory: ","Invalid path!\n",basePath);
 	basePath += "/";
 	cout << "Output directory: " << basePath << endl;
 
-	string keplerPath;
-	AcquireDirectory(cout,cin,"Full path to Kepler directory: ","Invalid path!\n",keplerPath);
-	keplerPath += "/";
-	cout << "Kepler directory: " << keplerPath << endl;
+	string keplerPath, keplerID, keplerObjPath, keplerObjCalibratedFile;
+	cout << "Use a given Kepler AGN to create the mask of missing values for the mock light curve" << endl;
+
+	/*do {
+		AcquireDirectory(cout,cin,"Path to Kepler Directory: ","Invalid path!\n",keplerPath);
+		keplerPath += "/";
+		} while (!exists(path(keplerPath)));*/
+	keplerPath = getenv("KEPLER_PATH");
+	cout << "KEPLER_PATH: " << keplerPath << endl;
+
+	do {
+		AcquireInput(cout,cin,"KeplerID: ","Invalid value.\n",keplerID);
+		keplerObjPath = keplerPath+keplerID+"/";
+		} while (!boost::filesystem::exists(path(keplerObjPath)));
+
+	cout << "Path to Kepler obj: " << keplerObjPath << endl;
+
+	array<double,3> loc = {0.0, 0.0, 0.0};
+	Equatorial keplerPos = Equatorial(loc);
+	KeplerObj newguy(keplerID, keplerPath, keplerPos);
+	bool forceCalibrate = false;
+	int stitchMethod = -1;
+
+	keplerObjCalibratedFile = keplerObjPath+keplerID+"-calibrated.dat";
+	tuple<vector<array<int,2>>,vector<array<double,5>>> dataArray;
+	if ((!boost::filesystem::exists(path(keplerObjCalibratedFile))) or (!boost::filesystem::is_regular_file(path(keplerObjCalibratedFile)))) {
+		cout << "Calibrated data file not found. Calibration must be performed!" << endl;
+		do {
+			cout << "Stitching method to use?" << endl;
+			cout << "[0]: No stitching" << endl;
+			cout << "[1]: Match endpoints across quarters" << endl;
+			cout << "[2]: Match averaged points across quarters" << endl;
+			AcquireInput(cout,cin,"stitchMethod: ","Invalid value!\n",stitchMethod);
+			} while ((stitchMethod < 0) && (stitchMethod > 2));
+		} else {
+		AcquireInput(cout,cin,"Calibrated data file located. Recalibrate? (Recommended that re-calibration not be performed!): ","Invalid value.\n",forceCalibrate);
+		if (forceCalibrate == true) {
+			do {
+				cout << "Stitching method to use?" << endl;
+				cout << "[0]: No stitching" << endl;
+				cout << "[1]: Match endpoints across quarters" << endl;
+				cout << "[2]: Match averaged points across quarters" << endl;
+				AcquireInput(cout,cin,"stitchMethod: ","Invalid value!\n",stitchMethod);
+				} while ((stitchMethod < 0) && (stitchMethod > 2));
+			}
+		}
+	dataArray = newguy.getData(forceCalibrate,stitchMethod);
+	newguy.setProperties(dataArray);
+	int numCadences = newguy.getNumCadences();
+	double* keplerMask = static_cast<double*>(_mm_malloc(numCadences*sizeof(double),64));
+	newguy.setMask(dataArray,keplerMask);
+
+	int firstCadence = newguy.getFirstCadence(), lastCadence = newguy.getLastCadence(), startCadence = 0, offSet = 0;
+
+	#ifdef DEBUG_MASK
+	for (int i = 0; i < numObs; ++i) {
+		printf("mask[%d]: %f\n",i+firstCadence,keplerMask[i]);
+		}
+	#endif
 
 	int numHost = sysconf(_SC_NPROCESSORS_ONLN);
 	cout << numHost << " hardware thread contexts detected." << endl;
@@ -163,7 +225,7 @@ int main() {
 		AcquireInput(cout,cin,"Observation noise sigma_noise: ","Invalid value.\n",noiseSigma);
 		} while (noiseSigma <= 0.0);
 
-	array<double,3> loc = {0.0, 0.0, 0.0};
+	/*array<double,3> loc = {0.0, 0.0, 0.0};
 	cout << "A real Kepler AGN will be used to create the mask of missing values for the mock light curve" << endl;
 	string keplerID;
 	AcquireInput(cout,cin,"KeplerID: ","Invalid value.\n",keplerID);
@@ -194,7 +256,7 @@ int main() {
 	for (int i = 0; i < numObs; ++i) {
 		printf("mask[%d]: %f\n",i+firstCadence,keplerMask[i]);
 		}
-	#endif
+	#endif*/
 
 	do {
 		cout << "The first cadence in the lightcurve of " << keplerID << " is " << firstCadence << endl;

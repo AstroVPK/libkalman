@@ -25,6 +25,7 @@ template<typename InType> void AcquireInput(ostream& Os, istream& Is, const stri
 		Is >> Result;
 		if (Is.fail()) {
 			Os << FailString.c_str();
+			Is.ignore(numeric_limits<streamsize>::max(), '\n');
 			}
 		} while(Is.fail());
 	}
@@ -35,51 +36,8 @@ template<typename InType> InType AcquireInput(ostream& Os, istream& Is, const st
 	return temp;
 	}
 
-void AcquireDirectory(ostream& Os, istream& Is, const string& Prompt, const string& FailString, string& Result); /*{
-	bool validPath = false, satisfied = false;
-	string userInput, homeDir = getenv("HOME"), workingDir = getenv("PWD"), rootDir = "/";
-	path inputPath, rootPath = path(rootDir);
-	do {
-		validPath = false, satisfied = false;
-		do {
-			cout << Prompt;
-			getline(cin,userInput);
-			//cout << "getLine: " << userInput << endl;
-			for (int i = 0; i < userInput.length(); ++i) {
-				if (!userInput.compare(i,1,"~")) {
-					//cout << "Found ~" << endl;
-					userInput.replace(i,1,homeDir);
-					//cout << "Parsed to " << userInput << endl;
-					}
-				}
-			if (userInput.compare(0,1,"/")) {
-				//cout << "Relative path!" << endl;
-				try {
-					inputPath = canonical(path(userInput), current_path());
-					//cout << "Valid path! " << inputPath << endl;
-					validPath = true;
-					} catch (filesystem_error) {
-					cout << "Invalid path!" << endl;
-					}
-				} else {
-				//cout << "Absolute path!" << endl;
-				try {
-					inputPath = canonical(path(userInput), rootPath);
-					//cout << "Valid path! " << inputPath << endl;
-					validPath = true;
-					} catch (filesystem_error) {
-					cout << "Invalid path!" << endl;
-					}
-				}
-			} while (!validPath);
-		if (is_regular_file(inputPath)) {
-			cout << "Error! " << inputPath << "is a file!" << endl;
-			continue;
-			} else {
-			Result = inputPath.string();
-			satisfied = true;
-			}
-		} while (!satisfied);
-	}*/
+void AcquireDirectory(ostream& Os, istream& Is, const string& Prompt, const string& FailString, string& Result);
+
+void AcquireFile(ostream& Os, istream& Is, const string& Prompt, const string& FailString, string& Result);
 
 #endif
