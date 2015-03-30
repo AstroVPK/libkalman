@@ -166,29 +166,31 @@ int main() {
 
 		double *RealAR, *ImagAR, *RealMA, *ImagMA;
 
-		double lenRoot = 0.0;
-		cout << "The roots of the AR polynomial are" <<
+		cout << "AR Polynomial Roots" << endl;
 		cout.precision(4);
-		if (pMaster = 1) {
-			cout << noshowpos << scientific << "1: " << showpos << 1.0/ThetaMaster[1] << 0.0 << "i" << endl;
+		if (pMaster == 1) {
+			cout << noshowpos << fixed << "1: " << showpos << 1.0/ThetaMaster[1] << 0.0 << "i" << endl;
 			} else {
 			SystemMaster.getARRoots(RealAR, ImagAR);
 			for (int pCtr = 0; pCtr < pMaster; ++pCtr) {
-				lenRoot = pow(RealAR[pCtr],2.0) + pow(ImagAR[pCtr],2.0);
-				cout << showpos << scientific << pCtr << ": " << showpos << RealAR[pCtr]/lenRoot << -ImagAR[pCtr]/lenRoot << "i" << endl;
+				cout << showpos << fixed << pCtr << ": " << showpos << RealAR[pCtr] << ImagAR[pCtr] << "i" << endl;
 				}
 			}
-		cout << "The roots of the MA polynomial are" <<
 		cout.precision(4);
-		if (qMaster = 1) {
-			cout << showpos << scientific << "1: " << showpos << -1.0/ThetaMaster[pMaster+1] << 0.0 << "i" << endl;
-			} else {
-			SystemMaster.getMARoots(RealMA, ImagMA);
-			for (int qCtr = 0; qCtr < qMaster; ++qCtr) {
-				lenRoot = pow(RealMA[qCtr],2.0) + pow(ImagMA[qCtr],2.0);
-				cout << showpos << scientific << qCtr << ": " << showpos << RealMA[qCtr]/lenRoot << -ImagMA[qCtr]/lenRoot << "i" << endl;
+		if (qMaster > 0) {
+			cout << endl;
+			cout << "MA Polynomial Roots" << endl;
+			if (qMaster == 1) {
+				cout << showpos << fixed << "1: " << showpos << -1.0/ThetaMaster[pMaster+1] << 0.0 << "i" << endl;
+				} else {
+				SystemMaster.getMARoots(RealMA, ImagMA);
+				for (int qCtr = 0; qCtr < qMaster; ++qCtr) {
+					cout << showpos << fixed << qCtr << ": " << showpos << RealMA[qCtr] << ImagMA[qCtr] << "i" << endl;
+					}
 				}
 			}
+
+		cout << noshowpos;
 
 		cout << "System parameters are ";
 		if (goodYN == 0) {

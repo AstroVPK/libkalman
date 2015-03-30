@@ -64,8 +64,8 @@ public:
 	void resetState(double InitUncertainty);
 	void resetState();
 	int checkARMAParams(double* Theta);
-	void getARRoots(double* RealAR, double* ImagARW);
-	void getMARoots(double* RealMA, double* ImagMA);
+	void getARRoots(double*& RealAR, double*& ImagARW);
+	void getMARoots(double*& RealMA, double*& ImagMA);
 	void burnSystem(int numBurn, unsigned int burnSeed, double* burnRand);
 	double observeSystem(double distRand, double noiseRand);
 	double observeSystem(double distRand, double noiseRand, double mask);
