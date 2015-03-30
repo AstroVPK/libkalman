@@ -1498,6 +1498,16 @@ int DLM::checkARMAParams(double* Theta) {
 	return isStable*isInvertible*isNotRedundant*isReasonable;
 	}
 
+void DLM::getARRoots(double* RealAR, double* ImagAR) {
+	RealAR = ARwr;
+	ImagAR = ARwi;
+	}
+
+void DLM::getMARoots(double* RealMA, double* ImagMA) {
+	RealMA = MAwr;
+	ImagMA = MAwi;
+	}
+
 void DLM::burnSystem(int numBurn, unsigned int burnSeed, double* burnRand) {
 
 	#ifdef DEBUG_BURNSYSTEM
