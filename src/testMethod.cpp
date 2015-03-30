@@ -169,11 +169,11 @@ int main() {
 		cout << "AR Polynomial Roots" << endl;
 		cout.precision(4);
 		if (pMaster == 1) {
-			cout << noshowpos << fixed << "1: " << showpos << 1.0/ThetaMaster[1] << 0.0 << "i" << endl;
+			cout << noshowpos << fixed << "Root1: " << showpos << 1.0/ThetaMaster[1] << 0.0 << "i; Magnitude: " << abs(1.0/ThetaMaster[1]) << endl;
 			} else {
 			SystemMaster.getARRoots(RealAR, ImagAR);
 			for (int pCtr = 0; pCtr < pMaster; ++pCtr) {
-				cout << showpos << fixed << pCtr << ": " << showpos << RealAR[pCtr] << ImagAR[pCtr] << "i" << endl;
+				cout << showpos << fixed << "Root" << pCtr << ": " << showpos << RealAR[pCtr] << ImagAR[pCtr] << "i; Magnitude: " << sqrt(pow(RealAR[pCtr],2.0) + pow(ImagAR[pCtr],2.0)) << endl;
 				}
 			}
 		cout.precision(4);
@@ -181,11 +181,11 @@ int main() {
 			cout << endl;
 			cout << "MA Polynomial Roots" << endl;
 			if (qMaster == 1) {
-				cout << showpos << fixed << "1: " << showpos << -1.0/ThetaMaster[pMaster+1] << 0.0 << "i" << endl;
+				cout << showpos << fixed << "Root1: " << showpos << -1.0/ThetaMaster[pMaster+1] << 0.0 << "i; Magnitude: " << abs(-1.0/ThetaMaster[pMaster+1]) << endl;
 				} else {
 				SystemMaster.getMARoots(RealMA, ImagMA);
 				for (int qCtr = 0; qCtr < qMaster; ++qCtr) {
-					cout << showpos << fixed << qCtr << ": " << showpos << RealMA[qCtr] << ImagMA[qCtr] << "i" << endl;
+					cout << showpos << fixed << "Root" << qCtr << ": " << showpos << RealMA[qCtr] << ImagMA[qCtr] << "i; Magnitude: " << sqrt(pow(RealMA[qCtr],2.0) + pow(ImagMA[qCtr],2.0)) << endl;
 					}
 				}
 			}
