@@ -181,7 +181,7 @@ int main() {
 		cout << "The roots of the MA polynomial are" <<
 		cout.precision(4);
 		if (qMaster = 1) {
-			cout << showpos << scientific << "1: " << showpos << 1.0/ThetaMaster[pMaster+1] << 0.0 << "i" << endl;
+			cout << showpos << scientific << "1: " << showpos << -1.0/ThetaMaster[pMaster+1] << 0.0 << "i" << endl;
 			} else {
 			SystemMaster.getMARoots(RealMA, ImagMA);
 			for (int qCtr = 0; qCtr < qMaster; ++qCtr) {
