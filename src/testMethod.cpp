@@ -194,7 +194,7 @@ int main() {
 				}
 			}
 
-		cout << noshowpos;
+		cout << noshowpos << endl;
 
 		cout << "System parameters are ";
 		if (goodYN == 0) {
