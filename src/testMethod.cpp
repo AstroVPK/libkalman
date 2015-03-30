@@ -122,11 +122,15 @@ int main() {
 	while (pMaster < 1) {
 		AcquireInput(cout,cin,"Number of AR coefficients p: ","Invalid value.\n",pMaster);
 	}
-	qMaster = pMaster;
-	while ((qMaster >= pMaster) or (qMaster < 0)) {
-		cout << "The number of MA coefficients (q) must be less than the number of AR coefficients (p) if the system is to \n correspond to a C-ARMA process." << endl;
-		cout << "Please select q < " << pMaster << endl;
-		AcquireInput(cout,cin,"Number of MA coefficients q: ","Invalid value.\n",qMaster);
+	if (pMaster > 1) {
+		qMaster = pMaster;
+		while ((qMaster >= pMaster) or (qMaster < 0)) {
+			cout << "The number of MA coefficients (q) must be less than the number of AR coefficients (p) if the system is to \n correspond to a C-ARMA process." << endl;
+			cout << "Please select q < " << pMaster << endl;
+			AcquireInput(cout,cin,"Number of MA coefficients q: ","Invalid value.\n",qMaster);
+			}
+		} else {
+		qMaster = 0;
 		}
 	cout << "Creating DLM with " << pMaster << " AR components and " << qMaster << " MA components." << endl;
 	DLM SystemMaster = DLM();
