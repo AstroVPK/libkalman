@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import operator
 from mpl_settings import *
+import scipy.linalg as la
+import numpy.linalg as npla 
 import triangleVPK as VPK
 import sys as s
 import pdb
@@ -21,6 +23,24 @@ def MAD(a):
 	for i in range(a.shape[0]):
 		b[i]=abs(b[i]-medianVal)
 	return np.median(b)
+
+def ACVF(lag,y,mask,numPts):
+	runSum=0.0
+	numVals=0
+	for i in xrange(numPts-lag):
+		runSum+=(mask[i]*y[i,0])*(mask[i+lag]*y[i+lag,0])
+		numVals+=mask[i]*mask[i+lag]
+	if (numVals>0):
+		acvf=runSum/numVals
+	else:
+		acvf=np.nan
+	return acvf
+
+def PACF(lag,ACVFVals,numPts):
+	gammaMatrix=np.matrix(la.toeplitz(ACVFVals[0:lag,1]))
+	gammaVec=np.transpose(np.matrix(ACVFVals[1:lag+1,1]))
+	solution=np.matrix(npla.pinv(gammaMatrix))*gammaVec
+	return float(solution[lag-1,0])
 
 s1=2
 s2=9
@@ -163,6 +183,7 @@ numPts=int(values[1])
 
 t=np.zeros((numPts,2))
 y=np.zeros((numPts,2))
+yCopy=y=np.zeros((numPts,2))
 mask=np.zeros(numPts)
 x=np.zeros((numPts,2))
 v=np.zeros((numPts,2))
@@ -179,13 +200,55 @@ for i in range(numPts):
 	else:
 		mask[i]=1.0
 
+ySum=0.0
+maskSum=0.0
+for i in range(numPts):
+	ySum+=mask[i]*y[i,0]
+	maskSum+=mask[i]
+for i in range(numPts):
+	yCopy[i,0]/=ySum
+
+maxLag=50
+ACVFVals=np.zeros((maxLag,2))
+PACFVals=np.zeros((maxLag,2))
+for i in xrange(maxLag):
+	ACVFVals[i,0]=i
+	PACFVals[i,0]=i
+	ACVFVals[i,1]=ACVF(i,yCopy,mask,numPts)
+PACFVals[0,1]=1.0
+for i in xrange(1,maxLag):
+	PACFVals[i,1]=PACF(i,ACVFVals,numPts)
+
+plt.figure(2,figsize=(fwid,fhgt))
+
+plt.subplot(211)
+plt.vlines(x=0,ymin=min(0,ACVFVals[0,1]/ACVFVals[0,1]),ymax=max(0,ACVFVals[0,1]/ACVFVals[0,1]),colors='k',label="ACF")
+plt.subplot(212)
+plt.vlines(x=0,ymin=min(0,PACFVals[0,1]),ymax=max(0,PACFVals[0,1]),colors='k',label="PACF")
+for i in range(1,maxLag-1,1):
+	plt.subplot(211)
+	plt.vlines(x=i,ymin=min(0,ACVFVals[i,1]/ACVFVals[0,1]),ymax=max(0,ACVFVals[i,1]/ACVFVals[0,1]),colors='k')
+	plt.subplot(212)
+	plt.vlines(x=i,ymin=min(0,PACFVals[i,1]),ymax=max(0,PACFVals[i,1]),colors='k')
+plt.subplot(211)
+plt.hlines(y=[1.96/m.sqrt(maskSum),-1.96/m.sqrt(maskSum)],xmin=0,xmax=maxLag-1,linewidth=1, color='r',linestyle='dashed')
+plt.hlines(y=0,xmin=0,xmax=maxLag-1,linewidth=2, color='k')
+plt.xlim=(0,maxLag-1)
+plt.legend()
+plt.subplot(212)
+plt.hlines(y=[1.96/m.sqrt(maskSum),-1.96/m.sqrt(maskSum)],xmin=0,xmax=maxLag-1,linewidth=1, color='r',linestyle='dashed')
+plt.hlines(y=0,xmin=0,xmax=maxLag-1,linewidth=2, color='k')
+plt.xlim=(0,maxLag-1)
+plt.legend()
+
+plt.savefig(basePath+"cfs.jpg",dpi=dotsPerInch)
+
 (n,p,q,F,I,D,Q,H,R,K)=KF.makeSystem(pBest,qBest)
 (X,P,XMinus,PMinus,F,I,D,Q)=KF.setSystem(p,q,n,phiBest,thetaBest,sigmaBest,F,I,D,Q)
 LnLike=KF.getLnLike(y,mask,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
-#print "LnLike: %f"%(LnLike)
 KF.fixedIntervalSmoother(y,v,x,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
 
-plt.figure(2,figsize=(4*fwid,4*fhgt))
+plt.figure(3,figsize=(4*fwid,4*fhgt))
 
 plt.subplot(311)
 yMax=np.max(y[np.nonzero(y[:,0]),0])
@@ -195,9 +258,8 @@ plt.xlabel('$t$ (d)')
 for i in range(numPts):
 	if (mask[i]==1.0):
 		plt.errorbar(t[i,1],y[i,0],yerr=y[i,1],c='#e66101',fmt='.',marker=".",capsize=0,zorder=5)
-plt.xlim(t[0,1],t[-1,1])
+#plt.xlim(t[0,1],t[-1,1])
 plt.ylim(yMin,yMax)
-#plt.tight_layout()
 
 nBins=50
 binVals,binEdges=np.histogram(v[~np.isnan(v[:,0]),0],bins=nBins,range=(np.nanmin(v[1:numPts,0]),np.nanmax(v[1:numPts,0])))
@@ -220,9 +282,8 @@ for i in range(numPts):
 		plt.errorbar(t[i,1],y[i,0],yerr=y[i,1],c='#e66101',fmt='.',marker=".",capsize=0,zorder=-5)
 plt.plot(t[:,1],x[:,0],c='#5e3c99',zorder=10)
 plt.fill_between(t[:,1],x[:,0]+x[:,1],x[:,0]-x[:,1],facecolor='#b2abd2',edgecolor='none',alpha=1,zorder=5)
-plt.xlim(t[0,1],t[-1,1])
+#plt.xlim(t[0,1],t[-1,1])
 plt.ylim(yMin,yMax)
-#plt.tight_layout()
 
 plt.subplot(313)
 vMax=np.max(v[np.nonzero(v[:,0]),0])
@@ -233,8 +294,7 @@ for i in range(numPts):
 	if (mask[i]==1.0):
 		plt.errorbar(t[i,1],v[i,0],yerr=v[i,1],c='#e66101',fmt='.',marker=".",capsize=0,zorder=5)
 plt.barh(binEdges[0:nBins],newBinVals[0:nBins],xerr=newBinErrors[0:nBins],height=binWidth,alpha=0.4,zorder=10)
-plt.xlim(t[0,1],t[-1,1])
+#plt.xlim(t[0,1],t[-1,1])
 plt.ylim(vMin,vMax)
-#plt.tight_layout()
 
 plt.savefig(basePath+"lc_%d_%d.jpg"%(pBest,qBest),dpi=dotsPerInch)
