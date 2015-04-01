@@ -40,7 +40,11 @@ def PACF(lag,ACVFVals,numPts):
 	gammaMatrix=np.matrix(la.toeplitz(ACVFVals[0:lag,1]))
 	gammaVec=np.transpose(np.matrix(ACVFVals[1:lag+1,1]))
 	solution=np.matrix(npla.pinv(gammaMatrix))*gammaVec
-	return float(solution[lag-1,0])
+	result=float(solution[lag-1,0])
+	del gammaMatrix
+	del gammaVec
+	del solution
+	return result
 
 s1=2
 s2=9
@@ -200,13 +204,18 @@ for i in range(numPts):
 	else:
 		mask[i]=1.0
 
+(n,p,q,F,I,D,Q,H,R,K)=KF.makeSystem(pBest,qBest)
+(X,P,XMinus,PMinus,F,I,D,Q)=KF.setSystem(p,q,n,phiBest,thetaBest,sigmaBest,F,I,D,Q)
+LnLike=KF.getLnLike(y,mask,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
+KF.fixedIntervalSmoother(y,v,x,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
+
 ySum=0.0
 maskSum=0.0
 for i in range(numPts):
 	ySum+=mask[i]*y[i,0]
 	maskSum+=mask[i]
 for i in range(numPts):
-	yCopy[i,0]/=ySum
+	yCopy[i,0]=y[i,0]/ySum
 
 maxLag=50
 ACVFVals=np.zeros((maxLag,2))
@@ -243,12 +252,7 @@ plt.legend()
 
 plt.savefig(basePath+"cfs.jpg",dpi=dotsPerInch)
 
-(n,p,q,F,I,D,Q,H,R,K)=KF.makeSystem(pBest,qBest)
-(X,P,XMinus,PMinus,F,I,D,Q)=KF.setSystem(p,q,n,phiBest,thetaBest,sigmaBest,F,I,D,Q)
-LnLike=KF.getLnLike(y,mask,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
-KF.fixedIntervalSmoother(y,v,x,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
-
-plt.figure(3,figsize=(4*fwid,4*fhgt))
+plt.figure(3,figsize=(fwid,fhgt))
 
 plt.subplot(311)
 yMax=np.max(y[np.nonzero(y[:,0]),0])
