@@ -39,7 +39,7 @@ def ACVF(lag,y,mask,numPts):
 def PACF(lag,ACVFVals,numPts):
 	gammaMatrix=np.matrix(la.toeplitz(ACVFVals[0:lag,1]))
 	gammaVec=np.transpose(np.matrix(ACVFVals[1:lag+1,1]))
-	solution=np.matrix(npla.pinv(gammaMatrix))*gammaVec
+	solution=np.matrix(np.dot(np.matrix(npla.pinv(gammaMatrix)),gammaVec))
 	result=float(solution[lag-1,0])
 	del gammaMatrix
 	del gammaVec
@@ -113,6 +113,8 @@ for pNum in range(1,pMax+1,1):
 				plt.ylabel("$\\theta_{%d}$"%(k-pNum))
 			else:
 				plt.ylabel("$\sigma_{w}$")
+
+		plt.tight_layout()
 		plt.savefig(basePath+"mcmcWalkers_%d_%d.jpg"%(pNum,qNum),dpi=dotsPerInch)
 		plt.clf()
 
@@ -127,6 +129,7 @@ for pNum in range(1,pMax+1,1):
 		for i in range(qNum):
 			lbls.append("$\\theta_{%d}$"%(i+1))
 		figVPK,quantiles,qvalues=VPK.corner(samples,labels=lbls,fig_title="DIC: %f"%(dictDIC["%d %d"%(pNum,qNum)]),show_titles=True,title_args={"fontsize": 12},quantiles=[0.16, 0.5, 0.84],verbose=False,plot_contours=True,plot_datapoints=True,plot_contour_lines=False,pcolor_cmap=cm.gist_earth)
+
 		figVPK.savefig(basePath+"mcmcVPKTriangles_%d_%d.jpg"%(pNum,qNum),dpi=dotsPerInch)
 		figVPK.clf()
 
@@ -196,6 +199,7 @@ for i in range(numPts):
 	line=yFile.readline()
 	line.rstrip("\n")
 	values=line.split()
+	t[i,0]=i
 	t[i,1]=deltat*i
 	y[i,0]=float(values[0])
 	y[i,1]=float(values[1])
@@ -207,17 +211,19 @@ for i in range(numPts):
 (n,p,q,F,I,D,Q,H,R,K)=KF.makeSystem(pBest,qBest)
 (X,P,XMinus,PMinus,F,I,D,Q)=KF.setSystem(p,q,n,phiBest,thetaBest,sigmaBest,F,I,D,Q)
 LnLike=KF.getLnLike(y,mask,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
-KF.fixedIntervalSmoother(y,v,x,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
+r,x=KF.fixedIntervalSmoother(y,v,x,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
 
 ySum=0.0
 maskSum=0.0
 for i in range(numPts):
 	ySum+=mask[i]*y[i,0]
 	maskSum+=mask[i]
+ySum/=maskSum
+yCopy=np.copy(y)
 for i in range(numPts):
-	yCopy[i,0]=y[i,0]/ySum
+	yCopy[i,0]/=ySum
 
-maxLag=50
+maxLag=15
 ACVFVals=np.zeros((maxLag,2))
 PACFVals=np.zeros((maxLag,2))
 for i in xrange(maxLag):
@@ -230,30 +236,6 @@ for i in xrange(1,maxLag):
 
 plt.figure(2,figsize=(fwid,fhgt))
 
-plt.subplot(211)
-plt.vlines(x=0,ymin=min(0,ACVFVals[0,1]/ACVFVals[0,1]),ymax=max(0,ACVFVals[0,1]/ACVFVals[0,1]),colors='k',label="ACF")
-plt.subplot(212)
-plt.vlines(x=0,ymin=min(0,PACFVals[0,1]),ymax=max(0,PACFVals[0,1]),colors='k',label="PACF")
-for i in range(1,maxLag-1,1):
-	plt.subplot(211)
-	plt.vlines(x=i,ymin=min(0,ACVFVals[i,1]/ACVFVals[0,1]),ymax=max(0,ACVFVals[i,1]/ACVFVals[0,1]),colors='k')
-	plt.subplot(212)
-	plt.vlines(x=i,ymin=min(0,PACFVals[i,1]),ymax=max(0,PACFVals[i,1]),colors='k')
-plt.subplot(211)
-plt.hlines(y=[1.96/m.sqrt(maskSum),-1.96/m.sqrt(maskSum)],xmin=0,xmax=maxLag-1,linewidth=1, color='r',linestyle='dashed')
-plt.hlines(y=0,xmin=0,xmax=maxLag-1,linewidth=2, color='k')
-plt.xlim=(0,maxLag-1)
-plt.legend()
-plt.subplot(212)
-plt.hlines(y=[1.96/m.sqrt(maskSum),-1.96/m.sqrt(maskSum)],xmin=0,xmax=maxLag-1,linewidth=1, color='r',linestyle='dashed')
-plt.hlines(y=0,xmin=0,xmax=maxLag-1,linewidth=2, color='k')
-plt.xlim=(0,maxLag-1)
-plt.legend()
-
-plt.savefig(basePath+"cfs.jpg",dpi=dotsPerInch)
-
-plt.figure(3,figsize=(fwid,fhgt))
-
 plt.subplot(311)
 yMax=np.max(y[np.nonzero(y[:,0]),0])
 yMin=np.min(y[np.nonzero(y[:,0]),0])
@@ -262,7 +244,7 @@ plt.xlabel('$t$ (d)')
 for i in range(numPts):
 	if (mask[i]==1.0):
 		plt.errorbar(t[i,1],y[i,0],yerr=y[i,1],c='#e66101',fmt='.',marker=".",capsize=0,zorder=5)
-#plt.xlim(t[0,1],t[-1,1])
+plt.xlim(t[0,1],t[-1,1])
 plt.ylim(yMin,yMax)
 
 nBins=50
@@ -286,7 +268,7 @@ for i in range(numPts):
 		plt.errorbar(t[i,1],y[i,0],yerr=y[i,1],c='#e66101',fmt='.',marker=".",capsize=0,zorder=-5)
 plt.plot(t[:,1],x[:,0],c='#5e3c99',zorder=10)
 plt.fill_between(t[:,1],x[:,0]+x[:,1],x[:,0]-x[:,1],facecolor='#b2abd2',edgecolor='none',alpha=1,zorder=5)
-#plt.xlim(t[0,1],t[-1,1])
+plt.xlim(t[0,1],t[-1,1])
 plt.ylim(yMin,yMax)
 
 plt.subplot(313)
@@ -298,7 +280,37 @@ for i in range(numPts):
 	if (mask[i]==1.0):
 		plt.errorbar(t[i,1],v[i,0],yerr=v[i,1],c='#e66101',fmt='.',marker=".",capsize=0,zorder=5)
 plt.barh(binEdges[0:nBins],newBinVals[0:nBins],xerr=newBinErrors[0:nBins],height=binWidth,alpha=0.4,zorder=10)
-#plt.xlim(t[0,1],t[-1,1])
+plt.xlim(t[0,1],t[-1,1])
 plt.ylim(vMin,vMax)
 
+plt.tight_layout()
 plt.savefig(basePath+"lc_%d_%d.jpg"%(pBest,qBest),dpi=dotsPerInch)
+plt.clf()
+
+plt.figure(3,figsize=(fwid,fhgt))
+
+plt.subplot(211)
+plt.vlines(x=0,ymin=min(0,ACVFVals[0,1]/ACVFVals[0,1]),ymax=max(0,ACVFVals[0,1]/ACVFVals[0,1]),colors='k')
+plt.ylabel('$ACF$')
+plt.xlabel('Lag')
+plt.subplot(212)
+plt.ylabel('$PACF$')
+plt.xlabel('Lag')
+plt.vlines(x=0,ymin=min(0,PACFVals[0,1]),ymax=max(0,PACFVals[0,1]),colors='k')
+for i in xrange(1,maxLag-1):
+	plt.subplot(211)
+	plt.vlines(x=i,ymin=min(0,ACVFVals[i,1]/ACVFVals[0,1]),ymax=max(0,ACVFVals[i,1]/ACVFVals[0,1]),colors='k')
+	plt.subplot(212)
+	plt.vlines(x=i,ymin=min(0,PACFVals[i,1]),ymax=max(0,PACFVals[i,1]),colors='k')
+plt.subplot(211)
+plt.hlines(y=[1.96/m.sqrt(maskSum),-1.96/m.sqrt(maskSum)],xmin=0,xmax=maxLag-1,linewidth=1, color='r',linestyle='dashed')
+plt.hlines(y=0,xmin=0,xmax=maxLag-1,linewidth=2, color='k')
+plt.xlim=(0,maxLag-1)
+plt.subplot(212)
+plt.hlines(y=[1.96/m.sqrt(maskSum),-1.96/m.sqrt(maskSum)],xmin=0,xmax=maxLag-1,linewidth=1, color='r',linestyle='dashed')
+plt.hlines(y=0,xmin=0,xmax=maxLag-1,linewidth=2, color='k')
+plt.xlim=(0,maxLag-1)
+
+plt.tight_layout()
+plt.savefig(basePath+"cfs.jpg",dpi=dotsPerInch)
+plt.clf()
