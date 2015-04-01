@@ -194,7 +194,7 @@ void KeplerObj::setNumChiSq(int numChiSq) {
 int KeplerObj::getNumSeeds() {
 	return NumSeeds;
 	}
-	
+
 void KeplerObj::setNumSeeds(int numSeeds) {
 	NumSeeds = numSeeds;
 	}
@@ -206,7 +206,7 @@ int KeplerObj::getNumQuarters() {
 double KeplerObj::getMeanFlux() {
 	return MeanFlux;
 	}
-	
+
 double KeplerObj::getStartEpoch() {
 	return StartEpoch;
 	}
@@ -468,6 +468,12 @@ void KeplerObj::mergeQuarters(tuple<vector<array<int,2>>,vector<array<double,5>>
 	incrementLengths.swap(newIncrementLengths);
 	}
 
+tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData() {
+	bool forceCalibrate = false;
+	tuple<vector<array<int,2>>,vector<array<double,5>>> dataArray = getData(forceCalibrate, 2);
+	return dataArray;
+	}
+
 tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(int stitchMethod) {
 	bool forceCalibrate = true;
 	tuple<vector<array<int,2>>,vector<array<double,5>>> dataArray = getData(forceCalibrate, stitchMethod);
@@ -637,12 +643,12 @@ int KeplerObj::epochToindex(double epoch) {
 	int result = (int)(epoch/(lcCadence/(1.0+Location.getRedShift())));
 	return result;
 	}
-	
+
 double KeplerObj::indexToepoch(int index) {
 	double result = (double)(index*(lcCadence/(1.0+Location.getRedShift())));
 	return result;
 	}
-		
+
 vector<int> KeplerObj::epochToindex(vector<double> epochList) {
 	int epochLen = epochList.size();
 	vector<int> result(epochLen);
@@ -652,7 +658,7 @@ vector<int> KeplerObj::epochToindex(vector<double> epochList) {
 		}
 	return result;
 	}
-	
+
 vector<double> KeplerObj::indexToepoch(vector<int> indexList) {
 	int indexLen = indexList.size();
 	vector<double> result(indexLen);

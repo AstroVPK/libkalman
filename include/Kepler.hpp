@@ -67,6 +67,7 @@ public:
 	int getNumChiSq();
 	void setNumSeeds(int numSeeds);
 	int getNumSeeds();
+	tuple<vector<array<int,2>>,vector<array<double,5>>> getData();
 	tuple<vector<array<int,2>>,vector<array<double,5>>> getData(int stitchMethod);
 	tuple<vector<array<int,2>>,vector<array<double,5>>> getData(bool forceCalibrate, int stitchMethod); // Method0 = No Stitching; Method1 = Match nd points; Method2 = Match Avg across 50 entries; Method3 = Using first increments
 	void setProperties(const tuple<vector<array<int,2>>,vector<array<double,5>>>& dataArray);
