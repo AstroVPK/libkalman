@@ -466,7 +466,7 @@ int main() {
 	string myPath;
 	ostringstream convertP, convertQ;
 	int maxEvals = 1000;
-	double xTol = 0.01;
+	double xTol = 0.005;
 	DLM Systems[nthreads];
 
 	for (int p = pMax; p > 0; --p) {
@@ -539,7 +539,7 @@ int main() {
 			initPos = static_cast<double*>(_mm_malloc(nwalkers*ndims*sizeof(double),64));
 			vslNewStream(&initStream, VSL_BRNG_SFMT19937, initSeed);
 			//vslSkipAheadStream(initStream, nwalkers*(pMax+qMax+1)*(p*qMax+q));
-			vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, initStream, nwalkers*ndims, initPos, 0.0, 1e-3);
+			vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, initStream, nwalkers*ndims, initPos, 0.0, 1e-6);
 			for (int walkerNum = 0; walkerNum < nwalkers; ++walkerNum) {
 				#pragma omp simd
 				for (int dimNum = 0; dimNum < ndims; ++dimNum) {

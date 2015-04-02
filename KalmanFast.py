@@ -308,7 +308,10 @@ def getLnLike(y,mask,X,P,XMinus,PMinus,F,I,D,Q,H,R,K):
 		if (isnan(P[0,0])):
 			pdb.set_trace()'''
 
+		#try:
 		LnLike+=(-0.5*(transpose(v)*inverseS*v)-0.5*log(det(S)))[0,0]
+		#except ValueError:
+		#	pdb.set_trace()
 
 		'''print " LnLike "
 		print "--------"
