@@ -342,6 +342,19 @@ int main() {
 	cout << "Observing..." << endl;
 	SystemMaster.observeSystem(numObs, distSeed, noiseSeed, distRand, noiseRand, noiseSigma, y, mask);
 
+	cout << "Computing and removing average flux" << endl;
+	double ySum = 0.0, yCounter = 0.0;
+	for (int i = 0; i < numObs; ++i) {
+		ySum += mask[i]*y[i];
+		yCounter += mask[i];
+		}
+	double yMean = ySum/yCounter;
+	for (int i = 0; i < numObs; ++i) {
+		y[i] -= mask[i]*yMean;
+		}
+	cout << "Actual number of observations: " << yCounter << endl;
+	cout << "Mean Flux: " << yMean << endl;
+
 	cout << "Writing y" << endl;
 	string yPath = basePath+"y.dat";
 	ofstream yFile;
