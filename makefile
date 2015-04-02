@@ -58,9 +58,10 @@ OBJECTS = $(patsubst %,$(ODIR)/%,$(_OBJECTS))
 EXEC1 = testPoint
 EXEC2 = testMethod
 EXEC3 = plotARMARegions
+EXEC4 = fitARMA
 EXT = .cpp
 
-all: $(EXEC1) $(EXEC2) $(EXEC3)
+all: $(EXEC1) $(EXEC2) $(EXEC3) $(EXEC4)
 
 $(EXEC1): $(OBJECTS) $(patsub %,$(EXEC1)%,$(EXT))
 	$(CPPC) $(VERFLAGS) -xHost $(CPPFLAGS) $(FPFLAG) $(MKLFLAGS) $(OMPFLAGS) -I $(IDIR)  $(REPORTFLAG) $^ $(SRCDIR)/$(EXEC1)$(EXT) $(OMPFLAGS) $(MKL_LIBS) $(BOOSTLINK) -o $@
@@ -70,6 +71,9 @@ $(EXEC2): $(OBJECTS) $(patsub %,$(EXEC2)%,$(EXT))
 
 $(EXEC3): $(OBJECTS) $(patsub %,$(EXEC3)%,$(EXT))
 	$(CPPC) $(VERFLAGS) -xHost $(CPPFLAGS) $(FPFLAG) $(MKLFLAGS) $(OMPFLAGS) -I $(IDIR)  $(REPORTFLAG) $^ $(SRCDIR)/$(EXEC3)$(EXT) $(OMPFLAGS) $(MKL_LIBS) $(BOOSTLINK) $(NLOPTLIBS) -o $@
+
+$(EXEC4): $(OBJECTS) $(patsub %,$(EXEC4)%,$(EXT))
+	$(CPPC) $(VERFLAGS) -xHost $(CPPFLAGS) $(FPFLAG) $(MKLFLAGS) $(OMPFLAGS) -I $(IDIR)  $(REPORTFLAG) $^ $(SRCDIR)/$(EXEC4)$(EXT) $(OMPFLAGS) $(MKL_LIBS) $(BOOSTLINK) $(NLOPTLIBS) -o $@
 
 $(ODIR)/Universe.o: $(SRCDIR)/Universe.cpp $(IDIR)/Universe.hpp
 	$(CPPC) -c $(VERFLAGS) -xHost $(CPPFLAGS) $(OFFLOAD_FLAGS) $(FPFLAGS) -I $(IDIR) -I $(BOOSTLIB) $< -o $@

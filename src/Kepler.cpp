@@ -291,6 +291,94 @@ tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::readRawData() {
 	return resultArr;
 	}
 
+tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::readRawData(string& fileName, bool cbvORpdc) {
+	int colNum_FLUX = 7, colNum_FLUX_ERR = 8;
+	if (cbvORpdc == 0) { // Use PDC
+		colNum_FLUX = 7;
+		colNum_FLUX_ERR = 8;
+		} else {
+		colNum_FLUX = 21;
+		colNum_FLUX_ERR = 8;
+		}
+	vector<double> time, time_err, pdcsap_flux, pdcsap_flux_err;
+	vector<int> cadenceNo, quarterNo;
+	double dummy = 0.0;
+	string listFile = Path+ID+"/"+fileName;
+	ifstream fileList;
+	fileList.open(listFile);
+	string dataFileName, dataFilePath, line;
+	int quarterCounter = 0, numEntries = 0;
+	while (!fileList.eof()) {
+		getline(fileList,dataFileName);
+		dataFilePath = Path+ID+"/"+dataFileName;
+		ifstream dataFile;
+		dataFile.open(dataFilePath);
+		getline(dataFile,line);
+		quarterCounter = ++quarterCounter;
+		while (!dataFile.eof()) {
+			getline(dataFile,line);
+			istringstream record(line);
+			vector<string> word(20);
+			for (vector<string>::iterator wordIter = word.begin(); wordIter != word.end(); ++wordIter) {
+				record >> *wordIter;
+				}
+			if ((istringstream(word[7]) >> dummy) and (stoi(word[9]) == 0)) {
+				time.push_back(stod(word[0]));
+				time_err.push_back(stod(word[1]));
+				cadenceNo.push_back((int)stoi(word[2]));
+				pdcsap_flux.push_back(stod(word[colNum_FLUX]));
+				pdcsap_flux_err.push_back(stod(word[colNum_FLUX_ERR]));
+				quarterNo.push_back(quarterCounter);
+				NumQuarters = quarterCounter;
+				numEntries += 1;
+				}
+			word.clear();
+			}
+		dataFile.close();
+		}
+	fileList.close();
+	vector<int>::iterator cadenceBegin = cadenceNo.begin(), cadenceEnd = cadenceNo.end();
+	int usedCounter = 0, countCadences = 0;
+	double redShift = Location.getRedShift();
+	array<int,2> cadenceTempArr;
+	array<double,5> dataTempArr;
+	vector<array<int,2>> cadenceTempVec;
+	vector<array<double,5>> dataTempVec;
+	for (int cadenceCounter = *(cadenceBegin); cadenceCounter < *(cadenceEnd-1)+1; cadenceCounter++) {
+		countCadences += 1;
+		cadenceTempArr[0] = cadenceCounter;
+		dataTempArr[0] = (double)cadenceCounter*lcCadence/((double)1.0+redShift);
+		if (cadenceNo[usedCounter] == cadenceCounter) {
+			cadenceTempArr[1] = quarterNo[usedCounter];
+			dataTempArr[1] = pdcsap_flux[usedCounter];
+			dataTempArr[2] = pdcsap_flux_err[usedCounter];
+			dataTempArr[3] = time[usedCounter];
+			dataTempArr[4] = time_err[usedCounter];
+			usedCounter += 1;
+			}
+		else {
+			cadenceTempArr[1] = (int)-1;
+			dataTempArr[0] = (double)0.0;
+			dataTempArr[1] = (double)0.0;
+			dataTempArr[2] = (double)0.0;
+			dataTempArr[3] = (double)0.0;
+			dataTempArr[4] = (double)0.0;
+			}
+		cadenceTempVec.push_back(cadenceTempArr);
+		dataTempVec.push_back(dataTempArr);
+		}
+	NumCadences = countCadences;
+	NumLags = NumCadences - 1;
+	int cadenceTempVecSize = cadenceTempVec.size();
+	cadenceTempVec.resize(cadenceTempVecSize);
+	int dataTempVecSize = dataTempVec.size();
+	dataTempVec.resize(dataTempVecSize);
+	tuple<vector<array<int,2>>,vector<array<double,5>>> resultArr(cadenceTempVec,dataTempVec);
+	cadenceTempVec.clear();
+	dataTempVec.clear();
+	return resultArr;
+	}
+
 vector<int> KeplerObj::getQuarterList(const tuple<vector<array<int,2>>,vector<array<double,5>>>& dataArray) {
 	vector<int> quarterList;
 	int quarter, setContinue;
@@ -554,6 +642,94 @@ tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(bool forc
 		LastCadence = get<0>(dataArray)[NumCadences-1][0];
 		return dataArray;
 		}
+	}
+
+tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(string& fileName, bool cbvORpdc, bool forceCalibrate, int stitchMethod) {
+	double dummy;
+	array<int,2> cadenceArr;
+	array<double,5> dataArr;
+	vector<array<int,2>> cadenceVec;
+	vector<array<double,5>> dataVec;
+	string dataFilePath = Path + ID + "/" + ID + "-calibrated.dat";
+	bool calibratedDataExists = exists(dataFilePath);
+	if ((forceCalibrate == true) or (calibratedDataExists == false)) {
+		//Calibration to be redone or no calibration exists at the moment.
+		//Perform calibration by calling the calibration functions. Write the result out to file. Return calibrated dataArray.
+		array<int,2> mergedQuarters;
+		tuple<vector<array<int,2>>,vector<array<double,5>>> dataArray = readRawData(fileName, cbvORpdc);
+		vector<int> quarterList = getQuarterList(dataArray);
+		vector<int> quarterLimits = getQuarterLimits(dataArray, quarterList);
+		vector<int> quarterLengths = getQuarterLengths(quarterLimits);
+		vector<int> incrementLengths = getIncrementLengths(quarterLimits);
+		while (quarterLimits.size() != 2) {
+			mergedQuarters = pickMerge(quarterList, incrementLengths);
+			mergeQuarters(dataArray, quarterList, quarterLimits, quarterLengths, incrementLengths, mergedQuarters, stitchMethod);
+			}
+		// Write out data.
+		ofstream calibratedDataFile;
+		calibratedDataFile.open(dataFilePath);
+		calibratedDataFile << "NumCadences: " << NumCadences << endl; 
+		calibratedDataFile << "cadence" << " quarter" << " cal_time" << " flux" << " flux_err" << " time" << " time_err" << endl;
+		calibratedDataFile.precision(16);
+		{
+			vector<array<int,2>>::iterator cadIter;
+			vector<array<double,5>>::iterator dataIter;
+			for (cadIter = get<0>(dataArray).begin(), dataIter = get<1>(dataArray).begin(); cadIter < get<0>(dataArray).end()-1, dataIter < get<1>(dataArray).end()-1; cadIter++, dataIter++) {
+				//CHANGED!
+				calibratedDataFile << noshowpos << scientific << (*cadIter)[0] << " " << (*cadIter)[1] << " " << ((*dataIter)[0]/secPerSiderealDay) << " " << (*dataIter)[1] << " " << (*dataIter)[2] << " " << (*dataIter)[3] << " " << (*dataIter)[4] << endl;
+				}
+			calibratedDataFile << noshowpos << scientific << (*cadIter)[0] << " " << (*cadIter)[1] << " " << ((*dataIter)[0]/secPerSiderealDay) << " " << (*dataIter)[1] << " " << (*dataIter)[2] << " " << (*dataIter)[3] << " " << (*dataIter)[4];		
+			}
+		calibratedDataFile.close();
+		return dataArray;
+		}
+	else {
+		ifstream dataFile;
+		dataFile.open(dataFilePath);
+		string line;
+		getline(dataFile,line);
+		getline(dataFile,line);
+		int cadCounter = 0;
+		while (!dataFile.eof()) {
+			getline(dataFile,line);
+			cadCounter++;
+			istringstream record(line);
+			vector<string> word(7);
+			for (vector<string>::iterator wordIter = word.begin(); wordIter != word.end(); ++wordIter) {
+				record >> *wordIter;
+				}
+			cadenceArr[0] = (int)stoi(word[0]);
+			cadenceArr[1] = (int)stoi(word[1]);
+			dataArr[0] = stod(word[2]);
+			dataArr[1] = stod(word[3]);
+			dataArr[2] = stod(word[4]);
+			dataArr[3] = stod(word[5]);
+			dataArr[4] = stod(word[6]);
+			word.clear();
+			cadenceVec.push_back(cadenceArr);
+			dataVec.push_back(dataArr);
+			}
+		NumCadences = cadCounter;
+		NumLags = cadCounter-1;
+		NumQuarters = 1;
+		dataFile.close();
+		tuple<vector<array<int,2>>,vector<array<double,5>>> dataArray(cadenceVec,dataVec);
+		FirstCadence = get<0>(dataArray)[0][0];
+		LastCadence = get<0>(dataArray)[NumCadences-1][0];
+		return dataArray;
+		}
+	}
+
+tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(string& fileName, bool cbvORpdc) {
+	bool forceCalibrate = false;
+	tuple<vector<array<int,2>>,vector<array<double,5>>> dataArray = getData(fileName, cbvORpdc, forceCalibrate, 2);
+	return dataArray;
+	}
+
+tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(string& fileName, bool cbvORpdc, int stitchMethod) {
+	bool forceCalibrate = true;
+	tuple<vector<array<int,2>>,vector<array<double,5>>> dataArray = getData(fileName, cbvORpdc, forceCalibrate, stitchMethod);
+	return dataArray;
 	}
 
 int KeplerObj::getFirstCadence() {

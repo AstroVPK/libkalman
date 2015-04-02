@@ -57,6 +57,7 @@ set_plot_params(fontsize=12)
 basePath=s.argv[1]
 pMax=int(s.argv[2])
 chop=int(s.argv[3])
+maxLag=int(s.argv[4])
 dictDIC=dict()
 fiftiethQ=dict()
 
@@ -223,7 +224,6 @@ yCopy=np.copy(y)
 for i in range(numPts):
 	yCopy[i,0]/=ySum
 
-maxLag=15
 ACVFVals=np.zeros((maxLag,2))
 PACFVals=np.zeros((maxLag,2))
 for i in xrange(maxLag):
