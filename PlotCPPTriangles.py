@@ -1,5 +1,6 @@
 import numpy as np
 import math as m
+import random as r
 import KalmanFast as KF
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -88,7 +89,10 @@ for pNum in range(1,pMax+1,1):
 				line.rstrip("\n")
 				values=line.split()
 				for k in range(ndim):
+					#try:
 					walkers[i,j,k]=float(values[k+4])
+					#except IndexError:
+					#	pdb.set_trace()
 				deviances[i,j]=-2.0*float(values[-1])
 		TriFile.close()
 
@@ -174,13 +178,41 @@ for i in range(len(sortedDICVals)):
 	resultFile.write(line);
 resultFile.close()
 
-sigmaBest=fiftiethQ["%d %d sigma_w"%(pBest,qBest)]
+bestFilePath=basePath+'mcmcOut_%d_%d.dat'%(pBest,qBest)
+bestFile=open(bestFilePath)
+line=bestFile.readline()
+line.rstrip("\n")
+values=line.split()
+nsteps=int(values[1])
+line=bestFile.readline()
+line.rstrip("\n")
+values=line.split()
+nwalkers=int(values[1])
+line=bestFile.readline()
+line.rstrip("\n")
+values=line.split()
+ndim=int(values[1])
+walkers=np.zeros((nsteps,nwalkers,ndim))
+for i in range(nsteps):
+	for j in range(nwalkers):
+		line=bestFile.readline()
+		line.rstrip("\n")
+		values=line.split()
+		for k in range(ndim):
+			walkers[i,j,k]=float(values[k+4])
+bestFile.close()
+
+randStep=r.randint(chop,nsteps-1)
+randWalker=r.randint(0,nwalkers-1)
+thetaBest=[dim for dim in walkers[randStep,randWalker,:]]
+
+'''sigmaBest=fiftiethQ["%d %d sigma_w"%(pBest,qBest)]
 phiBest=list()
 thetaBest=list()
 for i in range(pBest):
 	phiBest.append(fiftiethQ["%d %d phi_%d"%(pBest,qBest,i+1)])
 for i in range(qBest):
-	thetaBest.append(fiftiethQ["%d %d theta_%d"%(pBest,qBest,i+1)])
+	thetaBest.append(fiftiethQ["%d %d theta_%d"%(pBest,qBest,i+1)])'''
 
 yFilePath=basePath+'y.dat'
 yFile=open(yFilePath)
