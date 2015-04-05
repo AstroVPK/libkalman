@@ -18,6 +18,12 @@ readTime = 0.5189485261
 numIntLC = 270
 deltat=(numIntLC*(intTime+readTime))/secPerSiderealDay
 
+def NumVals(y,mask,numPts):
+	count=0.0
+	for i in xrange(numPts):
+		count+=mask[i]
+	return count
+
 def MAD(a):
 	medianVal=np.median(a)
 	b=np.copy(a)
@@ -25,19 +31,14 @@ def MAD(a):
 		b[i]=abs(b[i]-medianVal)
 	return np.median(b)
 
-def ACVF(lag,y,mask,numPts):
+def ACVF(lag,y,mask,numPts,numVals):
 	runSum=0.0
-	numVals=0
 	for i in xrange(numPts-lag):
 		runSum+=(mask[i]*y[i,0])*(mask[i+lag]*y[i+lag,0])
-		numVals+=mask[i]*mask[i+lag]
-	if (numVals>0):
-		acvf=runSum/numVals
-	else:
-		acvf=np.nan
+	acvf=runSum/numVals
 	return acvf
 
-def PACF(lag,ACVFVals,numPts):
+def PACF(lag,ACVFVals):
 	gammaMatrix=np.matrix(la.toeplitz(ACVFVals[0:lag,1]))
 	gammaVec=np.transpose(np.matrix(ACVFVals[1:lag+1,1]))
 	solution=np.matrix(np.dot(np.matrix(npla.pinv(gammaMatrix)),gammaVec))
@@ -204,7 +205,10 @@ bestFile.close()
 
 randStep=r.randint(chop,nsteps-1)
 randWalker=r.randint(0,nwalkers-1)
-thetaBest=[dim for dim in walkers[randStep,randWalker,:]]
+
+phiBest=[dim for dim in walkers[randStep,randWalker,1:pBest+1].tolist()]
+thetaBest=[dim for dim in walkers[randStep,randWalker,pBest+1:pBest+qBest+1]]
+sigmaBest=walkers[randStep,randWalker,0].tolist()
 
 '''sigmaBest=fiftiethQ["%d %d sigma_w"%(pBest,qBest)]
 phiBest=list()
@@ -256,15 +260,16 @@ yCopy=np.copy(y)
 for i in range(numPts):
 	yCopy[i,0]/=ySum
 
+numVals=NumVals(yCopy,mask,numPts)
 ACVFVals=np.zeros((maxLag,2))
 PACFVals=np.zeros((maxLag,2))
 for i in xrange(maxLag):
 	ACVFVals[i,0]=i
 	PACFVals[i,0]=i
-	ACVFVals[i,1]=ACVF(i,yCopy,mask,numPts)
+	ACVFVals[i,1]=ACVF(i,yCopy,mask,numPts,numVals)
 PACFVals[0,1]=1.0
 for i in xrange(1,maxLag):
-	PACFVals[i,1]=PACF(i,ACVFVals,numPts)
+	PACFVals[i,1]=PACF(i,ACVFVals)
 
 plt.figure(2,figsize=(fwid,fhgt))
 
