@@ -12,42 +12,6 @@ import triangleVPK as VPK
 import sys as s
 import pdb
 
-secPerSiderealDay = 86164.0905 
-intTime = 6.019802903
-readTime = 0.5189485261
-numIntLC = 270
-deltat=(numIntLC*(intTime+readTime))/secPerSiderealDay
-
-def NumVals(y,mask,numPts):
-	count=0.0
-	for i in xrange(numPts):
-		count+=mask[i]
-	return count
-
-def MAD(a):
-	medianVal=np.median(a)
-	b=np.copy(a)
-	for i in range(a.shape[0]):
-		b[i]=abs(b[i]-medianVal)
-	return np.median(b)
-
-def ACVF(lag,y,mask,numPts,numVals):
-	runSum=0.0
-	for i in xrange(numPts-lag):
-		runSum+=(mask[i]*y[i,0])*(mask[i+lag]*y[i+lag,0])
-	acvf=runSum/numVals
-	return acvf
-
-def PACF(lag,ACVFVals):
-	gammaMatrix=np.matrix(la.toeplitz(ACVFVals[0:lag,1]))
-	gammaVec=np.transpose(np.matrix(ACVFVals[1:lag+1,1]))
-	solution=np.matrix(np.dot(np.matrix(npla.pinv(gammaMatrix)),gammaVec))
-	result=float(solution[lag-1,0])
-	del gammaMatrix
-	del gammaVec
-	del solution
-	return result
-
 s1=2
 s2=9
 fwid=13
@@ -56,10 +20,22 @@ dotsPerInch=600
 nbins=100
 set_plot_params(fontsize=12)
 
+secPerSiderealDay = 86164.0905 
+intTime = 6.019802903
+readTime = 0.5189485261
+numIntLC = 270
+deltat=(numIntLC*(intTime+readTime))/secPerSiderealDay
+
+def MAD(a):
+	medianVal=np.median(a)
+	b=np.copy(a)
+	for i in range(a.shape[0]):
+		b[i]=abs(b[i]-medianVal)
+	return np.median(b)
+
 basePath=s.argv[1]
 pMax=int(s.argv[2])
 chop=int(s.argv[3])
-maxLag=int(s.argv[4])
 dictDIC=dict()
 fiftiethQ=dict()
 
@@ -227,7 +203,6 @@ numPts=int(values[1])
 
 t=np.zeros((numPts,2))
 y=np.zeros((numPts,2))
-yCopy=y=np.zeros((numPts,2))
 mask=np.zeros(numPts)
 x=np.zeros((numPts,2))
 v=np.zeros((numPts,2))
@@ -249,27 +224,6 @@ for i in range(numPts):
 (X,P,XMinus,PMinus,F,I,D,Q)=KF.setSystem(p,q,n,phiBest,thetaBest,sigmaBest,F,I,D,Q)
 LnLike=KF.getLnLike(y,mask,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
 r,x=KF.fixedIntervalSmoother(y,v,x,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
-
-ySum=0.0
-maskSum=0.0
-for i in range(numPts):
-	ySum+=mask[i]*y[i,0]
-	maskSum+=mask[i]
-ySum/=maskSum
-yCopy=np.copy(y)
-for i in range(numPts):
-	yCopy[i,0]/=ySum
-
-numVals=NumVals(yCopy,mask,numPts)
-ACVFVals=np.zeros((maxLag,2))
-PACFVals=np.zeros((maxLag,2))
-for i in xrange(maxLag):
-	ACVFVals[i,0]=i
-	PACFVals[i,0]=i
-	ACVFVals[i,1]=ACVF(i,yCopy,mask,numPts,numVals)
-PACFVals[0,1]=1.0
-for i in xrange(1,maxLag):
-	PACFVals[i,1]=PACF(i,ACVFVals)
 
 plt.figure(2,figsize=(fwid,fhgt))
 
@@ -322,32 +276,4 @@ plt.ylim(vMin,vMax)
 
 plt.tight_layout()
 plt.savefig(basePath+"lc_%d_%d.jpg"%(pBest,qBest),dpi=dotsPerInch)
-plt.clf()
-
-plt.figure(3,figsize=(fwid,fhgt))
-
-plt.subplot(211)
-plt.vlines(x=0,ymin=min(0,ACVFVals[0,1]/ACVFVals[0,1]),ymax=max(0,ACVFVals[0,1]/ACVFVals[0,1]),colors='k')
-plt.ylabel('$ACF$')
-plt.xlabel('Lag')
-plt.subplot(212)
-plt.ylabel('$PACF$')
-plt.xlabel('Lag')
-plt.vlines(x=0,ymin=min(0,PACFVals[0,1]),ymax=max(0,PACFVals[0,1]),colors='k')
-for i in xrange(1,maxLag-1):
-	plt.subplot(211)
-	plt.vlines(x=i,ymin=min(0,ACVFVals[i,1]/ACVFVals[0,1]),ymax=max(0,ACVFVals[i,1]/ACVFVals[0,1]),colors='k')
-	plt.subplot(212)
-	plt.vlines(x=i,ymin=min(0,PACFVals[i,1]),ymax=max(0,PACFVals[i,1]),colors='k')
-plt.subplot(211)
-plt.hlines(y=[1.96/m.sqrt(maskSum),-1.96/m.sqrt(maskSum)],xmin=0,xmax=maxLag-1,linewidth=1, color='r',linestyle='dashed')
-plt.hlines(y=0,xmin=0,xmax=maxLag-1,linewidth=2, color='k')
-plt.xlim=(0,maxLag-1)
-plt.subplot(212)
-plt.hlines(y=[1.96/m.sqrt(maskSum),-1.96/m.sqrt(maskSum)],xmin=0,xmax=maxLag-1,linewidth=1, color='r',linestyle='dashed')
-plt.hlines(y=0,xmin=0,xmax=maxLag-1,linewidth=2, color='k')
-plt.xlim=(0,maxLag-1)
-
-plt.tight_layout()
-plt.savefig(basePath+"cfs.jpg",dpi=dotsPerInch)
 plt.clf()
