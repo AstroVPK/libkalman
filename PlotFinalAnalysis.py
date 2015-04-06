@@ -153,7 +153,6 @@ for i in range(len(sortedDICVals)):
 	RelProbOfMinInfLoss=100.0*m.exp(0.5*(float(sortedDICVals[0][1])-float(sortedDICVals[i][1])))
 	line='{:>4}   {:> 13.3f}    {:> 18.2f}%\n'.format(sortedDICVals[i][0],float(sortedDICVals[i][1]),RelProbOfMinInfLoss)
 	resultFile.write(line);
-resultFile.close()
 
 bestFilePath=basePath+'mcmcOut_%d_%d.dat'%(pBest,qBest)
 bestFile=open(bestFilePath)
@@ -186,13 +185,21 @@ phiBest=[dim for dim in walkers[randStep,randWalker,1:pBest+1].tolist()]
 thetaBest=[dim for dim in walkers[randStep,randWalker,pBest+1:pBest+qBest+1]]
 sigmaBest=walkers[randStep,randWalker,0].tolist()
 
-'''sigmaBest=fiftiethQ["%d %d sigma_w"%(pBest,qBest)]
-phiBest=list()
-thetaBest=list()
-for i in range(pBest):
-	phiBest.append(fiftiethQ["%d %d phi_%d"%(pBest,qBest,i+1)])
-for i in range(qBest):
-	thetaBest.append(fiftiethQ["%d %d theta_%d"%(pBest,qBest,i+1)])'''
+line="\n"
+resultFile.write(line);
+line="Randomly chosen values from posterior distribution\n"
+resultFile.write(line);
+line="--------------------------------------------------\n"
+resultFile.write(line);
+line = "sigma: %f\n"%(sigmaBest)
+resultFile.write(line);
+for i in xrange(pBest):
+	line="phi_%d: %f\n"%(i,phiBest[i])
+	resultFile.write(line);
+for i in xrange(qBest):
+	line="theta_%d: %f\n"%(i,thetaBest[i])
+	resultFile.write(line);
+resultFile.close()
 
 yFilePath=basePath+'y.dat'
 yFile=open(yFilePath)
@@ -200,6 +207,14 @@ line=yFile.readline()
 line.rstrip("\n")
 values=line.split()
 numPts=int(values[1])
+line=yFile.readline()
+line.rstrip("\n")
+values=line.split()
+numObs=int(values[1])
+line=yFile.readline()
+line.rstrip("\n")
+values=line.split()
+meanY=float(values[1])
 
 t=np.zeros((numPts,2))
 y=np.zeros((numPts,2))
@@ -211,14 +226,11 @@ for i in range(numPts):
 	line=yFile.readline()
 	line.rstrip("\n")
 	values=line.split()
-	t[i,0]=i
+	t[i,0]=int(values[0])
 	t[i,1]=deltat*i
-	y[i,0]=float(values[0])
-	y[i,1]=float(values[1])
-	if (values[1]=='1.3407807929942596e+154'):
-		mask[i]=0.0
-	else:
-		mask[i]=1.0
+	mask[i]=float(values[1])
+	y[i,0]=float(values[2])
+	y[i,1]=float(values[3])
 
 (n,p,q,F,I,D,Q,H,R,K)=KF.makeSystem(pBest,qBest)
 (X,P,XMinus,PMinus,F,I,D,Q)=KF.setSystem(p,q,n,phiBest,thetaBest,sigmaBest,F,I,D,Q)

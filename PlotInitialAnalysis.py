@@ -58,6 +58,14 @@ line=yFile.readline()
 line.rstrip("\n")
 values=line.split()
 numPts=int(values[1])
+line=yFile.readline()
+line.rstrip("\n")
+values=line.split()
+numObs=int(values[1])
+line=yFile.readline()
+line.rstrip("\n")
+values=line.split()
+meanY=float(values[1])
 
 t=np.zeros((numPts,2))
 y=np.zeros((numPts,2))
@@ -69,23 +77,21 @@ for i in range(numPts):
 	line=yFile.readline()
 	line.rstrip("\n")
 	values=line.split()
-	t[i,0]=i
+	t[i,0]=int(values[0])
 	t[i,1]=deltat*i
-	y[i,0]=float(values[0])
-	y[i,1]=float(values[1])
-	if (values[1]=='1.3407807929942596e+154'):
-		mask[i]=0.0
-	else:
-		mask[i]=1.0
+	mask[i]=float(values[1])
+	y[i,0]=float(values[2])
+	y[i,1]=float(values[3])
 
-ySum=0.0
-maskSum=0.0
-for i in range(numPts):
-	ySum+=mask[i]*y[i,0]
-	maskSum+=mask[i]
-ySum/=maskSum
-for i in range(numPts):
-	y[i,0]/=ySum
+#ySum=0.0
+#maskSum=0.0
+#for i in range(numPts):
+#	ySum+=mask[i]*y[i,0]
+#	maskSum+=mask[i]
+#ySum/=maskSum
+#print ySum
+#for i in range(numPts):
+#	y[i,0]/=ySum
 
 numVals=NumVals(y,mask,numPts)
 ACVFVals=np.zeros((maxLag,2))
@@ -124,11 +130,11 @@ for i in xrange(1,maxLag-1):
 	plt.subplot(313)
 	plt.vlines(x=i,ymin=min(0,PACFVals[i,1]),ymax=max(0,PACFVals[i,1]),colors='k')
 plt.subplot(312)
-plt.hlines(y=[1.96/m.sqrt(maskSum),-1.96/m.sqrt(maskSum)],xmin=0,xmax=maxLag-1,linewidth=1, color='r',linestyle='dashed')
+plt.hlines(y=[1.96/m.sqrt(numObs),-1.96/m.sqrt(numObs)],xmin=0,xmax=maxLag-1,linewidth=1, color='r',linestyle='dashed')
 plt.hlines(y=0,xmin=0,xmax=maxLag-1,linewidth=2, color='k')
 plt.xlim=(0,maxLag-1)
 plt.subplot(313)
-plt.hlines(y=[1.96/m.sqrt(maskSum),-1.96/m.sqrt(maskSum)],xmin=0,xmax=maxLag-1,linewidth=1, color='r',linestyle='dashed')
+plt.hlines(y=[1.96/m.sqrt(numObs),-1.96/m.sqrt(numObs)],xmin=0,xmax=maxLag-1,linewidth=1, color='r',linestyle='dashed')
 plt.hlines(y=0,xmin=0,xmax=maxLag-1,linewidth=2, color='k')
 plt.xlim=(0,maxLag-1)
 
