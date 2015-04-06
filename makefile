@@ -63,7 +63,7 @@ EXEC5 = writeKeplerLC
 EXEC6 = writeMockLC
 EXT = .cpp
 
-all: $(EXEC1) $(EXEC2) $(EXEC3) $(EXEC4) $(EXEC5)
+all: $(EXEC1) $(EXEC2) $(EXEC3) $(EXEC4) $(EXEC5) $(EXEC6)
 
 $(EXEC1): $(OBJECTS) $(patsub %,$(EXEC1)%,$(EXT))
 	$(CPPC) $(VERFLAGS) -xHost $(CPPFLAGS) $(FPFLAG) $(MKLFLAGS) $(OMPFLAGS) -I $(IDIR)  $(REPORTFLAG) $^ $(SRCDIR)/$(EXEC1)$(EXT) $(OMPFLAGS) $(MKL_LIBS) $(BOOSTLINK) -o $@

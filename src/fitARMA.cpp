@@ -11,7 +11,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-//#include <cstring>
 #include <sstream>
 #include <nlopt.hpp>
 #include <boost/system/error_code.hpp>

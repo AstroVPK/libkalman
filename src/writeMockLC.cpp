@@ -104,12 +104,12 @@ int main() {
 		}
 	#endif
 
-	int numHost = sysconf(_SC_NPROCESSORS_ONLN);
+	/*int numHost = sysconf(_SC_NPROCESSORS_ONLN);
 	cout << numHost << " hardware thread contexts detected." << endl;
 	int nthreads = 0;
 	AcquireInput(cout,cin,"Number of OmpenMP threads to use: ","Invalid value!\n",nthreads);
 	omp_set_num_threads(nthreads);
-	int threadNum = omp_get_thread_num();
+	int threadNum = omp_get_thread_num();*/
 
 	cout << "Create a test light curve with known parameters - make an ARMA light curve with p AR and q MA co-efficients." << endl;
 	int pMaster = 0, qMaster = 0;
@@ -267,6 +267,7 @@ int main() {
 	double* yerr = static_cast<double*>(_mm_malloc(numObs*sizeof(double),64));
 
 	for (int obsCounter = 0; obsCounter < numObs; ++obsCounter) {
+		cadence[obsCounter] = get<0>(dataArray)[obsCounter+offSet][0];
 		mask[obsCounter] = keplerMask[obsCounter+offSet];
 		}
 	_mm_free(keplerMask);
