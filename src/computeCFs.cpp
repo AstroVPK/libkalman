@@ -2,35 +2,24 @@
 #include <mkl.h>
 #include <mkl_types.h>
 #include <omp.h>
-#include <sys/sysinfo.h>
-#include <unistd.h>
-#include <cstdlib>
-#include <vector>
-#include <array>
-#include <tuple>
+#include <limits>
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 #include <sstream>
-#include <nlopt.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/system/linux_error.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/io/detail/quoted_manip.hpp>
+#include "Correlation.hpp"
 #include "Acquire.hpp"
-#include "Kalman.hpp"
-#include "Universe.hpp"
-#include "Kepler.hpp"
-#include "MCMC.hpp"
 
 #define TIME_LNLIKE
 #define TIME_MCMC
 
-//#define DEBUG_MASK
-
 using namespace std;
-using namespace nlopt;
 
 int main() {
 	cout.clear();
@@ -122,7 +111,7 @@ int main() {
 	#endif
 
 	cout << "Writing ACVF to ";
-	ACVFPath = basePath + "acvf.dat";
+	string ACVFPath = basePath + "acvf.dat";
 	cout << ACVFPath << endl;
 	ofstream ACVFFile;
 	ACVFFile.open(ACVFPath);
@@ -155,7 +144,7 @@ int main() {
 	#endif
 
 	cout << "Writing ACF to ";
-	ACVFPath = basePath + "acf.dat";
+	string ACFPath = basePath + "acf.dat";
 	cout << ACFPath << endl;
 	ofstream ACFFile;
 	ACFFile.open(ACFPath);
@@ -188,7 +177,7 @@ int main() {
 	#endif
 
 	cout << "Writing SF1 to ";
-	ACVFPath = basePath + "sf1.dat";
+	string SF1Path = basePath + "sf1.dat";
 	cout << SF1Path << endl;
 	ofstream SF1File;
 	SF1File.open(SF1Path);
