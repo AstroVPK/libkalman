@@ -158,7 +158,7 @@ int main() {
 	ACFFile << noshowpos << fixed << "numObservations: " << numObservations << endl;
 	ACFFile << noshowpos << fixed << "numLags: " << numLags << endl;
 	for (int lagNum = 0; lagNum < numLags - 1; ++lagNum) {
-		ACFFile << noshowpos << scientific << acf[lagNum];
+		ACFFile << noshowpos << scientific << acf[lagNum] << endl;
 		}
 	ACFFile << noshowpos << scientific << acf[numLags - 1];
 	ACFFile.close();
@@ -193,7 +193,7 @@ int main() {
 	SF1File << noshowpos << fixed << "numObservations: " << numObservations << endl;
 	SF1File << noshowpos << fixed << "numLags: " << numLags << endl;
 	for (int lagNum = 0; lagNum < numLags - 1; ++lagNum) {
-		SF1File << noshowpos << scientific << sf1[lagNum];
+		SF1File << noshowpos << scientific << sf1[lagNum] << endl;
 		}
 	SF1File << noshowpos << scientific << sf1[numLags - 1];
 	SF1File.close();
