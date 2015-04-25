@@ -47,11 +47,11 @@ REPORTFLAG = -qopt-report-phase=vec -qopt-report-file=stdout -openmp-report=0
 #     source     - enables intermediates in source precision
 #     strict     - enables -fp-model precise -fp-model except and disables floating point multiply add
 
-_DEPENDENCIES = Constants.hpp Utilities.hpp Acquire.hpp Universe.hpp Spherical.hpp Obj.hpp Kepler.hpp Kalman.hpp MCMC.hpp
+_DEPENDENCIES = Constants.hpp Utilities.hpp Acquire.hpp Universe.hpp Spherical.hpp Obj.hpp Kepler.hpp Kalman.hpp MCMC.hpp Correlation.hpp
 #PRH.hpp DLAPACKE.hpp
 DEPENDENCIES = $(patsubst %,$(IDIR)/%,$(_DEPENDENCIES))
 
-_OBJECTS = Constants.o Utilities.o Acquire.o Universe.o Spherical.o Obj.o Kepler.o Kalman.o MCMC.o
+_OBJECTS = Constants.o Utilities.o Acquire.o Universe.o Spherical.o Obj.o Kepler.o Kalman.o MCMC.o Correlation.o
 # PRH.o DLAPACKE.o
 OBJECTS = $(patsubst %,$(ODIR)/%,$(_OBJECTS))
 
@@ -61,6 +61,7 @@ EXEC3 = plotARMARegions
 EXEC4 = fitARMA
 EXEC5 = writeKeplerLC
 EXEC6 = writeMockLC
+EXEC7 = computeCFs
 EXT = .cpp
 
 all: $(EXEC1) $(EXEC2) $(EXEC3) $(EXEC4) $(EXEC5) $(EXEC6)
@@ -82,6 +83,9 @@ $(EXEC5): $(OBJECTS) $(patsub %,$(EXEC5)%,$(EXT))
 
 $(EXEC6): $(OBJECTS) $(patsub %,$(EXEC6)%,$(EXT))
 	$(CPPC) $(VERFLAGS) -xHost $(CPPFLAGS) $(FPFLAG) $(MKLFLAGS) $(OMPFLAGS) -I $(IDIR)  $(REPORTFLAG) $^ $(SRCDIR)/$(EXEC6)$(EXT) $(OMPFLAGS) $(MKL_LIBS) $(BOOSTLINK) $(NLOPTLIBS) -o $@
+
+$(EXEC7): $(OBJECTS) $(patsub %,$(EXEC7)%,$(EXT))
+	$(CPPC) $(VERFLAGS) -xHost $(CPPFLAGS) $(FPFLAG) $(MKLFLAGS) $(OMPFLAGS) -I $(IDIR)  $(REPORTFLAG) $^ $(SRCDIR)/$(EXEC7)$(EXT) $(OMPFLAGS) $(MKL_LIBS) -o $@
 
 $(ODIR)/Universe.o: $(SRCDIR)/Universe.cpp $(IDIR)/Universe.hpp
 	$(CPPC) -c $(VERFLAGS) -xHost $(CPPFLAGS) $(OFFLOAD_FLAGS) $(FPFLAGS) -I $(IDIR) -I $(BOOSTLIB) $< -o $@
