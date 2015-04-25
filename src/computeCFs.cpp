@@ -16,8 +16,9 @@
 #include "Correlation.hpp"
 #include "Acquire.hpp"
 
-#define TIME_LNLIKE
-#define TIME_MCMC
+#define TIME_ACVF
+#define TIME_ACF
+#define TIME_SF1
 
 using namespace std;
 
@@ -99,12 +100,14 @@ int main() {
 
 	#ifdef TIME_ACVF
 	double timeACVFBegin = 0.0, timeACVFEnd = 0.0, timeACVF = 0.0;
+	#pragma omp barrier
 	timeACVFBegin = dtime();
 	#endif
 
 	ACVF(numCadences, numLags, y, mask, acvf);
 
 	#ifdef TIME_ACVF
+	#pragma omp barrier
 	timeACVFEnd = dtime();
 	timeACVF = timeACVFEnd - timeACVFBegin;
 	cout << "ACVF computed in " << timeACVF << " (s)!" << endl;
@@ -130,14 +133,16 @@ int main() {
 
 	double* acf = static_cast<double*>(_mm_malloc(numLags*sizeof(double),64));
 
-	#ifdef TIME_AVF
+	#ifdef TIME_ACF
 	double timeACFBegin = 0.0, timeACFEnd = 0.0, timeACF = 0.0;
+	#pragma omp barrier
 	timeACFBegin = dtime();
 	#endif
 
 	ACF(numLags, acvf, acf);
 
 	#ifdef TIME_ACF
+	#pragma omp barrier
 	timeACFEnd = dtime();
 	timeACF = timeACFEnd - timeACFBegin;
 	cout << "ACF computed in " << timeACF << " (s)!" << endl;
@@ -165,15 +170,17 @@ int main() {
 
 	#ifdef TIME_SF1
 	double timeSF1Begin = 0.0, timeSF1End = 0.0, timeSF1 = 0.0;
+	#pragma omp barrier
 	timeSF1Begin = dtime();
 	#endif
 
 	SF1(numLags, acvf, sf1);
 
 	#ifdef TIME_SF1
+	#pragma omp barrier
 	timeSF1End = dtime();
 	timeSF1 = timeSF1End - timeSF1Begin;
-	cout << "SF1 computed in " << timeSf1 << " (s)!" << endl;
+	cout << "SF1 computed in " << timeSF1 << " (s)!" << endl;
 	#endif
 
 	cout << "Writing SF1 to ";

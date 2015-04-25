@@ -605,6 +605,8 @@ tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(bool forc
 			calibratedDataFile << noshowpos << scientific << (*cadIter)[0] << " " << (*cadIter)[1] << " " << ((*dataIter)[0]/secPerSiderealDay) << " " << (*dataIter)[1] << " " << (*dataIter)[2] << " " << (*dataIter)[3] << " " << (*dataIter)[4];		
 			}
 		calibratedDataFile.close();
+		FirstCadence = get<0>(dataArray)[0][0];
+		LastCadence = get<0>(dataArray)[NumCadences-1][0];
 		return dataArray;
 		}
 	else {

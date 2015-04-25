@@ -109,17 +109,18 @@ int main() {
 	int firstCadence = newguy.getFirstCadence(), lastCadence = newguy.getLastCadence(), startCadence = 0, offSet = 0;
 
 	int numObs = 0;
+	cout << keplerID << " has " << numCadences << " cadences." << endl;
 	do {
-		AcquireInput(cout,cin,"Number of cadences (Must be greater than 0): ","Invalid value.\n",numObs);
+		AcquireInput(cout,cin,"Number of cadences to write? (Must be greater than 0): ","Invalid value.\n",numObs);
 		} while (numObs <= 0); 
 
 	do {
 		cout << "The first cadence in the lightcurve of " << keplerID << " is " << firstCadence << endl;
 		cout << "The last cadence in the lightcurve of " << keplerID << " is " << lastCadence << endl;
-		cout << "To observe " << numObs << " cadences in the lightcurve, the start cadence must be no greater than " << lastCadence-numObs << endl;
-		cout << "Pick a start cadence mask between " << firstCadence << " and " << lastCadence-numObs << endl;
+		cout << "To observe " << numObs << " cadences in the lightcurve, the start cadence must be no greater than " << lastCadence + 1 - numObs << endl;
+		cout << "Pick a start cadence mask between " << firstCadence << " and " << lastCadence + 1 - numObs << endl;
 		AcquireInput(cout,cin,"startCadence: ","Invalid value.\n",startCadence);
-		} while ((startCadence < firstCadence) or (startCadence >= (lastCadence-numObs)));
+		} while ((startCadence < firstCadence) or (startCadence > (lastCadence + 1 - numObs)));
 
 	offSet = startCadence-firstCadence;
 	int* cadence = static_cast<int*>(_mm_malloc(numObs*sizeof(int),64));
