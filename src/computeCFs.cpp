@@ -16,9 +16,9 @@
 #include "Correlation.hpp"
 #include "Acquire.hpp"
 
-#define TIME_ACVF
-#define TIME_ACF
-#define TIME_SF1
+//#define TIME_ACVF
+//#define TIME_ACF
+//#define TIME_SF1
 
 using namespace std;
 

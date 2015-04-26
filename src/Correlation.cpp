@@ -25,7 +25,19 @@ void ACVF(int numCadences, int numLags, const double* const y, const double* con
 		yScratch[cadCounter] = y[cadCounter] - mean*mask[cadCounter];
 		}
 
-	/*! Now compute for each lag. */
+	/*! Now, following "Spectrum Estimation with Missing Observations" by Richard H. Jones (Rcvd 1969, Rvsd 1971) we compute for each lag. */
+	/*#pragma omp parallel for default(none) shared(numLags, acvf, numCadences, mask, yScratch, numObs)
+	for (int lagCounter = 0; lagCounter < numLags; ++lagCounter) {
+		acvf[lagCounter] = 0.0;
+		double numPts = 0.0;
+		for (int cadCounter = 0; cadCounter < numCadences - lagCounter; ++cadCounter) {
+			acvf[lagCounter] += mask[cadCounter]*mask[cadCounter + lagCounter]*yScratch[cadCounter]*yScratch[cadCounter + lagCounter]; 
+			numPts += mask[cadCounter]*mask[cadCounter + lagCounter];
+			}
+		acvf[lagCounter] /= numPts;
+		}*/
+
+	/*! Following "Modern Applied Statistics with S" by W.N. Venables & B.D. Ripley (4th Ed, 1992) we compute for each lag. */
 	#pragma omp parallel for default(none) shared(numLags, acvf, numCadences, mask, yScratch, numObs)
 	for (int lagCounter = 0; lagCounter < numLags; ++lagCounter) {
 		acvf[lagCounter] = 0.0;
