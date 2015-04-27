@@ -47,11 +47,11 @@ REPORTFLAG = -qopt-report-phase=vec -qopt-report-file=stdout -openmp-report=0
 #     source     - enables intermediates in source precision
 #     strict     - enables -fp-model precise -fp-model except and disables floating point multiply add
 
-_DEPENDENCIES = Constants.hpp Utilities.hpp Acquire.hpp Universe.hpp Spherical.hpp Obj.hpp Kepler.hpp Kalman.hpp MCMC.hpp Correlation.hpp
+_DEPENDENCIES = Constants.hpp Utilities.hpp Acquire.hpp Universe.hpp Spherical.hpp Obj.hpp Kepler.hpp Kalman.hpp MCMC.hpp DLAPACKE.hpp Correlation.hpp
 #PRH.hpp DLAPACKE.hpp
 DEPENDENCIES = $(patsubst %,$(IDIR)/%,$(_DEPENDENCIES))
 
-_OBJECTS = Constants.o Utilities.o Acquire.o Universe.o Spherical.o Obj.o Kepler.o Kalman.o MCMC.o Correlation.o
+_OBJECTS = Constants.o Utilities.o Acquire.o Universe.o Spherical.o Obj.o Kepler.o Kalman.o MCMC.o DLAPACKE.o Correlation.o
 # PRH.o DLAPACKE.o
 OBJECTS = $(patsubst %,$(ODIR)/%,$(_OBJECTS))
 
@@ -97,6 +97,9 @@ $(ODIR)/Kalman.o: $(SRCDIR)/Kalman.cpp $(IDIR)/Kalman.hpp
 	$(CPPC) -c $(VERFLAGS) -xHost $(CPPFLAGS) $(OMPFLAGS) $(FPFLAGS) $(REPORTFLAG) -I $(IDIR) $< -o $@
 
 $(ODIR)/MCMC.o: $(SRCDIR)/MCMC.cpp $(IDIR)/MCMC.hpp
+	$(CPPC) -c $(VERFLAGS) -xHost $(CPPFLAGS) $(OMPFLAGS) $(FPFLAGS) $(REPORTFLAG) -I $(IDIR) $< -o $@
+
+$(ODIR)/DLAPACKE.o: $(SRCDIR)/DLAPACKE.cpp $(IDIR)/DLAPACKE.hpp
 	$(CPPC) -c $(VERFLAGS) -xHost $(CPPFLAGS) $(OMPFLAGS) $(FPFLAGS) $(REPORTFLAG) -I $(IDIR) $< -o $@
 
 $(ODIR)/Correlation.o: $(SRCDIR)/Correlation.cpp $(IDIR)/Correlation.hpp

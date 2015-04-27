@@ -16,9 +16,10 @@
 #include "Correlation.hpp"
 #include "Acquire.hpp"
 
-//#define TIME_ACVF
-//#define TIME_ACF
-//#define TIME_SF1
+#define TIME_ACVF
+#define TIME_ACF
+#define TIME_PACF
+#define TIME_SF1
 
 using namespace std;
 
@@ -94,9 +95,8 @@ int main() {
 		} 
 
 	cout << "Computing ACVF" << endl;
-	int numLags = numCadences - 1;
 
-	double* acvf = static_cast<double*>(_mm_malloc(numLags*sizeof(double),64));
+	double* acvf = static_cast<double*>(_mm_malloc(numCadences*sizeof(double),64));
 
 	#ifdef TIME_ACVF
 	double timeACVFBegin = 0.0, timeACVFEnd = 0.0, timeACVF = 0.0;
@@ -104,7 +104,7 @@ int main() {
 	timeACVFBegin = dtime();
 	#endif
 
-	ACVF(numCadences, numLags, y, mask, acvf);
+	ACVF(numCadences, y, mask, acvf);
 
 	#ifdef TIME_ACVF
 	#pragma omp barrier
@@ -121,17 +121,17 @@ int main() {
 	ACVFFile.precision(16);
 	ACVFFile << noshowpos << fixed << "numCadences: " << numCadences << endl;
 	ACVFFile << noshowpos << fixed << "numObservations: " << numObservations << endl;
-	ACVFFile << noshowpos << fixed << "numLags: " << numLags << endl;
-	for (int lagNum = 0; lagNum < numLags - 1; ++lagNum) {
+	ACVFFile << noshowpos << fixed << "numLags: " << numCadences - 1<< endl;
+	for (int lagNum = 0; lagNum < numCadences - 1; ++lagNum) {
 		ACVFFile << noshowpos << scientific << acvf[lagNum] << endl;
 		}
-	ACVFFile << noshowpos << scientific << acvf[numLags - 1];
+	ACVFFile << noshowpos << scientific << acvf[numCadences - 1];
 	ACVFFile.close();
 	cout << "ACVF written!" << endl;
 
 	cout << "Computing ACF" << endl;
 
-	double* acf = static_cast<double*>(_mm_malloc(numLags*sizeof(double),64));
+	double* acf = static_cast<double*>(_mm_malloc(numCadences*sizeof(double),64));
 
 	#ifdef TIME_ACF
 	double timeACFBegin = 0.0, timeACFEnd = 0.0, timeACF = 0.0;
@@ -139,7 +139,7 @@ int main() {
 	timeACFBegin = dtime();
 	#endif
 
-	ACF(numLags, acvf, acf);
+	ACF(numCadences, acvf, acf);
 
 	#ifdef TIME_ACF
 	#pragma omp barrier
@@ -156,17 +156,55 @@ int main() {
 	ACFFile.precision(16);
 	ACFFile << noshowpos << fixed << "numCadences: " << numCadences << endl;
 	ACFFile << noshowpos << fixed << "numObservations: " << numObservations << endl;
-	ACFFile << noshowpos << fixed << "numLags: " << numLags << endl;
-	for (int lagNum = 0; lagNum < numLags - 1; ++lagNum) {
+	ACFFile << noshowpos << fixed << "numLags: " << numCadences - 1 << endl;
+	for (int lagNum = 0; lagNum < numCadences - 1; ++lagNum) {
 		ACFFile << noshowpos << scientific << acf[lagNum] << endl;
 		}
-	ACFFile << noshowpos << scientific << acf[numLags - 1];
+	ACFFile << noshowpos << scientific << acf[numCadences - 1];
 	ACFFile.close();
 	cout << "ACF written!" << endl;
 
+	int maxLag = 0;
+	AcquireInput(cout,cin,"Maximum number of lags to calculate PACF to: ","Invalid value.\n",maxLag);
+
+	cout << "Computing PACF" << endl;
+
+	double* pacf = static_cast<double*>(_mm_malloc(maxLag*sizeof(double),64));
+
+	#ifdef TIME_PACF
+	double timePACFBegin = 0.0, timePACFEnd = 0.0, timePACF = 0.0;
+	#pragma omp barrier
+	timePACFBegin = dtime();
+	#endif
+
+	PACF(numCadences, maxLag, acvf, pacf);
+
+	#ifdef TIME_PACF
+	#pragma omp barrier
+	timePACFEnd = dtime();
+	timePACF = timePACFEnd - timePACFBegin;
+	cout << "PACF computed in " << timePACF << " (s)!" << endl;
+	#endif
+
+	cout << "Writing PACF to ";
+	string PACFPath = basePath + "pacf.dat";
+	cout << PACFPath << endl;
+	ofstream PACFFile;
+	PACFFile.open(PACFPath);
+	PACFFile.precision(16);
+	PACFFile << noshowpos << fixed << "numCadences: " << numCadences << endl;
+	PACFFile << noshowpos << fixed << "numObservations: " << numObservations << endl;
+	PACFFile << noshowpos << fixed << "numLags: " << maxLag << endl;
+	for (int lagNum = 0; lagNum < maxLag + 1; ++lagNum) {
+		PACFFile << noshowpos << scientific << pacf[lagNum] << endl;
+		}
+	PACFFile << noshowpos << scientific << pacf[numCadences - 1];
+	PACFFile.close();
+	cout << "PACF written!" << endl;
+
 	cout << "Computing SF1" << endl;
 
-	double* sf1 = static_cast<double*>(_mm_malloc(numLags*sizeof(double),64));
+	double* sf1 = static_cast<double*>(_mm_malloc(numCadences*sizeof(double),64));
 
 	#ifdef TIME_SF1
 	double timeSF1Begin = 0.0, timeSF1End = 0.0, timeSF1 = 0.0;
@@ -174,7 +212,7 @@ int main() {
 	timeSF1Begin = dtime();
 	#endif
 
-	SF1(numLags, acvf, sf1);
+	SF1(numCadences, acvf, sf1);
 
 	#ifdef TIME_SF1
 	#pragma omp barrier
@@ -191,17 +229,18 @@ int main() {
 	SF1File.precision(16);
 	SF1File << noshowpos << fixed << "numCadences: " << numCadences << endl;
 	SF1File << noshowpos << fixed << "numObservations: " << numObservations << endl;
-	SF1File << noshowpos << fixed << "numLags: " << numLags << endl;
-	for (int lagNum = 0; lagNum < numLags - 1; ++lagNum) {
+	SF1File << noshowpos << fixed << "numLags: " << numCadences - 1 << endl;
+	for (int lagNum = 0; lagNum < numCadences - 1; ++lagNum) {
 		SF1File << noshowpos << scientific << sf1[lagNum] << endl;
 		}
-	SF1File << noshowpos << scientific << sf1[numLags - 1];
+	SF1File << noshowpos << scientific << sf1[numCadences - 1];
 	SF1File.close();
 	cout << "SF1 written!" << endl;
 
 	cout << "Program exiting...Have a nice day!" << endl;
 
 	_mm_free(sf1);
+	_mm_free(pacf);
 	_mm_free(acf);
 	_mm_free(acvf);
 	_mm_free(cadence);
