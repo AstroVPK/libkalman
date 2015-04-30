@@ -38,56 +38,57 @@ for i in range(len(cbvList)/2):
 
 tLFile = open(targetListFile)
 for target in tLFile:
-	target = target.rstrip('\n')
-	objFolder = dataFolder + target
-	if (os.access(objFolder,os.F_OK) == False):
-		os.mkdir(objFolder)
-	FITSFolder = objFolder+'/llc/'
-	simFolder = objFolder+'/sim/'
-	lpdtargFolder = objFolder+'/lpd-targ/'
-	if (os.access(FITSFolder,os.F_OK) == False):
-		os.mkdir(FITSFolder)
-	if (os.access(simFolder,os.F_OK) == False):	
-		os.mkdir(simFolder)
-	if (os.access(lpdtargFolder,os.F_OK) == False):
-		os.mkdir(lpdtargFolder)
-	XXXX = target[4:8]
-	KKKKKKKKK = target[4:13]
-	urlpath = urllib2.urlopen(lightcurvesPath + XXXX + '/' + KKKKKKKKK)
-	targpath = urllib2.urlopen(target_pixel_filesPath + XXXX + '/' + KKKKKKKKK)
-	string = urlpath.read().decode('utf-8')
-	stringTarg = targpath.read().decode('utf-8')
-	quarterPattern = re.compile(target + '-[0-9]*_llc.fits')
-	targPattern = re.compile(target + '-[0-9]*_lpd-targ.fits.gz')
-	quarterList = quarterPattern.findall(string)
-	targList = targPattern.findall(stringTarg)
-	epochListFile = objFolder + '/' + target + '-epochList.dat'
-	eLFile = open(epochListFile,'w')
-	numQuarters = len(quarterList)/2
-	for i in range(numQuarters-1):
-		eLFileLine = '%s.dat\n'%(quarterList[2*i][0:31])
+	if (target[0]!='#'):
+		target = target.rstrip('\n')
+		objFolder = dataFolder + target
+		if (os.access(objFolder,os.F_OK) == False):
+			os.mkdir(objFolder)
+		FITSFolder = objFolder+'/llc/'
+		simFolder = objFolder+'/sim/'
+		lpdtargFolder = objFolder+'/lpd-targ/'
+		if (os.access(FITSFolder,os.F_OK) == False):
+			os.mkdir(FITSFolder)
+		if (os.access(simFolder,os.F_OK) == False):	
+			os.mkdir(simFolder)
+		if (os.access(lpdtargFolder,os.F_OK) == False):
+			os.mkdir(lpdtargFolder)
+		XXXX = target[4:8]
+		KKKKKKKKK = target[4:13]
+		urlpath = urllib2.urlopen(lightcurvesPath + XXXX + '/' + KKKKKKKKK)
+		targpath = urllib2.urlopen(target_pixel_filesPath + XXXX + '/' + KKKKKKKKK)
+		string = urlpath.read().decode('utf-8')
+		stringTarg = targpath.read().decode('utf-8')
+		quarterPattern = re.compile(target + '-[0-9]*_llc.fits')
+		targPattern = re.compile(target + '-[0-9]*_lpd-targ.fits.gz')
+		quarterList = quarterPattern.findall(string)
+		targList = targPattern.findall(stringTarg)
+		epochListFile = objFolder + '/' + target + '-epochList.dat'
+		eLFile = open(epochListFile,'w')
+		numQuarters = len(quarterList)/2
+		for i in range(numQuarters-1):
+			eLFileLine = '%s.dat\n'%(quarterList[2*i][0:31])
+			eLFile.write(eLFileLine)
+			remoteQuarterFile = urllib2.urlopen(lightcurvesPath + XXXX + '/' + KKKKKKKKK + '/' + quarterList[2*i])
+			remoteTargFile = urllib2.urlopen(target_pixel_filesPath + XXXX + '/' + KKKKKKKKK + '/' + targList[2*i])
+			localQuarterFile = open(FITSFolder + quarterList[2*i],'wb')
+			localTargFile = open(lpdtargFolder + targList[2*i],'wb')
+			localQuarterFile.write(remoteQuarterFile.read())
+			localTargFile.write(remoteTargFile.read())
+			localQuarterFile.close()
+			remoteQuarterFile.close()
+			localTargFile.close()
+			remoteTargFile.close()
+		eLFileLine = '%s.dat'%(quarterList[2*(numQuarters-1)][0:31])
 		eLFile.write(eLFileLine)
-		remoteQuarterFile = urllib2.urlopen(lightcurvesPath + XXXX + '/' + KKKKKKKKK + '/' + quarterList[2*i])
-		remoteTargFile = urllib2.urlopen(target_pixel_filesPath + XXXX + '/' + KKKKKKKKK + '/' + targList[2*i])
-		localQuarterFile = open(FITSFolder + quarterList[2*i],'wb')
-		localTargFile = open(lpdtargFolder + targList[2*i],'wb')
+		eLFile.close()
+		remoteQuarterFile = urllib2.urlopen(lightcurvesPath + XXXX + '/' + KKKKKKKKK + '/' + quarterList[2*(numQuarters-1)])
+		remoteTargFile = urllib2.urlopen(target_pixel_filesPath + XXXX + '/' + KKKKKKKKK + '/' + targList[2*(numQuarters-1)])
+		localQuarterFile = open(FITSFolder + quarterList[2*(numQuarters-1)],'wb')
+		localTargFile = open(lpdtargFolder + targList[2*(numQuarters-1)],'wb')
 		localQuarterFile.write(remoteQuarterFile.read())
 		localTargFile.write(remoteTargFile.read())
 		localQuarterFile.close()
 		remoteQuarterFile.close()
 		localTargFile.close()
 		remoteTargFile.close()
-	eLFileLine = '%s.dat'%(quarterList[2*(numQuarters-1)][0:31])
-	eLFile.write(eLFileLine)
-	eLFile.close()
-	remoteQuarterFile = urllib2.urlopen(lightcurvesPath + XXXX + '/' + KKKKKKKKK + '/' + quarterList[2*(numQuarters-1)])
-	remoteTargFile = urllib2.urlopen(target_pixel_filesPath + XXXX + '/' + KKKKKKKKK + '/' + targList[2*(numQuarters-1)])
-	localQuarterFile = open(FITSFolder + quarterList[2*(numQuarters-1)],'wb')
-	localTargFile = open(lpdtargFolder + targList[2*(numQuarters-1)],'wb')
-	localQuarterFile.write(remoteQuarterFile.read())
-	localTargFile.write(remoteTargFile.read())
-	localQuarterFile.close()
-	remoteQuarterFile.close()
-	localTargFile.close()
-	remoteTargFile.close()
 tLFile.close()
