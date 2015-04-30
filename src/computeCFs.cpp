@@ -195,10 +195,10 @@ int main() {
 	PACFFile << noshowpos << fixed << "numCadences: " << numCadences << endl;
 	PACFFile << noshowpos << fixed << "numObservations: " << numObservations << endl;
 	PACFFile << noshowpos << fixed << "numLags: " << maxLag << endl;
-	for (int lagNum = 0; lagNum < maxLag + 1; ++lagNum) {
+	for (int lagNum = 0; lagNum < maxLag; ++lagNum) {
 		PACFFile << noshowpos << scientific << pacf[lagNum] << endl;
 		}
-	PACFFile << noshowpos << scientific << pacf[numCadences - 1];
+	PACFFile << noshowpos << scientific << pacf[maxLag];
 	PACFFile.close();
 	cout << "PACF written!" << endl;
 
