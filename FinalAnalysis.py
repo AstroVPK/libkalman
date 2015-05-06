@@ -237,7 +237,7 @@ for i in range(numPts):
 LnLike=KF.getLnLike(y,mask,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
 r,x=KF.fixedIntervalSmoother(y,v,x,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
 
-plt.figure(2,figsize=(fwid,fhgt))
+plt.figure(2,figsize=(fwid,2*fhgt))
 
 '''plt.subplot(311)
 yMax=np.max(y[np.nonzero(y[:,0]),0])
@@ -279,8 +279,8 @@ plt.ylim(yMin,yMax)
 plt.subplot(212)
 #vMax=np.max(v[np.nonzero(v[:,0]),0])
 #vMin=np.min(v[np.nonzero(v[:,0]),0])
-vMax=3.0*np.std(v[np.nonzero(v[:,0]),0])
-vMin=-3.0*np.std(v[np.nonzero(v[:,0]),0])
+vMax=np.std(v[np.nonzero(v[:,0]),0])
+vMin=-np.std(v[np.nonzero(v[:,0]),0])
 plt.ylabel('$\Delta F$ (arb units)')
 plt.xlabel('$t$ (d)')
 for i in range(numPts):
