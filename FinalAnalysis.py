@@ -239,7 +239,7 @@ r,x=KF.fixedIntervalSmoother(y,v,x,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
 
 plt.figure(2,figsize=(fwid,fhgt))
 
-plt.subplot(311)
+'''plt.subplot(311)
 yMax=np.max(y[np.nonzero(y[:,0]),0])
 yMin=np.min(y[np.nonzero(y[:,0]),0])
 plt.ylabel('$F$ (arb units)')
@@ -248,7 +248,7 @@ for i in range(numPts):
 	if (mask[i]==1.0):
 		plt.errorbar(t[i,1],y[i,0],yerr=y[i,1],c='#e66101',fmt='.',marker=".",capsize=0,zorder=5)
 plt.xlim(t[0,1],t[-1,1])
-plt.ylim(yMin,yMax)
+plt.ylim(yMin,yMax)'''
 
 nBins=50
 binVals,binEdges=np.histogram(v[~np.isnan(v[:,0]),0],bins=nBins,range=(np.nanmin(v[1:numPts,0]),np.nanmax(v[1:numPts,0])))
@@ -261,7 +261,8 @@ for i in range(nBins):
 	newBinErrors[i]=(tMax/4.0)*(m.sqrt(float(binVals[i]))/binMax)
 binWidth=np.asscalar(binEdges[1]-binEdges[0])
 
-plt.subplot(312)
+#plt.subplot(312)
+plt.subplot(211)
 yMax=np.max(y[np.nonzero(y[:,0]),0])
 yMin=np.min(y[np.nonzero(y[:,0]),0])
 plt.ylabel('$F$ (arb units)')
@@ -274,9 +275,12 @@ plt.fill_between(t[:,1],x[:,0]+x[:,1],x[:,0]-x[:,1],facecolor='#b2abd2',edgecolo
 plt.xlim(t[0,1],t[-1,1])
 plt.ylim(yMin,yMax)
 
-plt.subplot(313)
-vMax=np.max(v[np.nonzero(v[:,0]),0])
-vMin=np.min(v[np.nonzero(v[:,0]),0])
+#plt.subplot(313)
+plt.subplot(212)
+#vMax=np.max(v[np.nonzero(v[:,0]),0])
+#vMin=np.min(v[np.nonzero(v[:,0]),0])
+vMax=3.0*np.std(v[np.nonzero(v[:,0]),0])
+vMin=-3.0*np.std(v[np.nonzero(v[:,0]),0])
 plt.ylabel('$\Delta F$ (arb units)')
 plt.xlabel('$t$ (d)')
 for i in range(numPts):
