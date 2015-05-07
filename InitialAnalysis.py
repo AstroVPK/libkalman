@@ -82,7 +82,7 @@ for i in xrange(maxLag):
 	pacf[i,0]=deltat*i
 	pacf[i,1]=float(values[0])
 
-plt.figure(1,figsize=(fwid,3*fhgt))
+plt.figure(1,figsize=(fwid,fhgt))
 
 '''plt.subplot(311)
 yMax=np.max(y[np.nonzero(y[:,0]),0])

@@ -237,7 +237,7 @@ for i in range(numPts):
 LnLike=KF.getLnLike(y,mask,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
 r,x=KF.fixedIntervalSmoother(y,v,x,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
 
-plt.figure(2,figsize=(fwid,2*fhgt))
+plt.figure(2,figsize=(fwid,fhgt))
 
 '''plt.subplot(311)
 yMax=np.max(y[np.nonzero(y[:,0]),0])
