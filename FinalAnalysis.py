@@ -250,17 +250,6 @@ for i in range(numPts):
 plt.xlim(t[0,1],t[-1,1])
 plt.ylim(yMin,yMax)'''
 
-nBins=50
-binVals,binEdges=np.histogram(v[~np.isnan(v[:,0]),0],bins=nBins,range=(np.nanmin(v[1:numPts,0]),np.nanmax(v[1:numPts,0])))
-binMax=np.nanmax(binVals)
-newBinVals=np.zeros(nBins)
-newBinErrors=np.zeros(nBins)
-tMax=np.nanmax(t[:,1])
-for i in range(nBins):
-	newBinVals[i]=(tMax/4.0)*(float(binVals[i])/binMax)
-	newBinErrors[i]=(tMax/4.0)*(m.sqrt(float(binVals[i]))/binMax)
-binWidth=np.asscalar(binEdges[1]-binEdges[0])
-
 #plt.subplot(312)
 plt.subplot(211)
 yMax=np.max(y[np.nonzero(y[:,0]),0])
@@ -281,6 +270,18 @@ plt.subplot(212)
 #vMin=np.min(v[np.nonzero(v[:,0]),0])
 vMax=np.std(v[np.nonzero(v[:,0]),0])
 vMin=-np.std(v[np.nonzero(v[:,0]),0])
+
+nBins=50
+binVals,binEdges=np.histogram(v[~np.isnan(v[:,0]),0],bins=nBins,range=(vMin,vMax))
+binMax=np.nanmax(binVals)
+newBinVals=np.zeros(nBins)
+newBinErrors=np.zeros(nBins)
+tMax=np.nanmax(t[:,1])
+for i in range(nBins):
+	newBinVals[i]=(tMax/4.0)*(float(binVals[i])/binMax)
+	newBinErrors[i]=(tMax/4.0)*(m.sqrt(float(binVals[i]))/binMax)
+binWidth=np.asscalar(binEdges[1]-binEdges[0])
+
 plt.ylabel('$\Delta F$ (arb units)')
 plt.xlabel('$t$ (d)')
 for i in range(numPts):
