@@ -101,7 +101,7 @@ plt.ylim(yMin,yMax)'''
 plt.ylabel('$\widehat{\\rho}(\Delta t)$')
 plt.xlabel('$\Delta t$ (d)')
 plt.plot(acf[:,0],acf[:,1],color='#4d4d4d')
-plt.fill_between(acf[:,0],min(0,acf[:,1]),max(0.0,acf[:,1]),color='#878787',zorder=-20)
+plt.fill_between(acf[:,0],0.0,acf[:,1],color='#878787',zorder=-20)
 plt.hlines(y=[1.96/m.sqrt(numPts),-1.96/m.sqrt(numPts)],xmin=0,xmax=numPts-1,linewidth=1, color='#b2182b',linestyle='dashed')
 plt.hlines(y=0,xmin=0,xmax=numPts-1,linewidth=2, color='#000000')
 plt.ylim(-1.0,1.0)
