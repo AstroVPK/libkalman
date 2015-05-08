@@ -7,8 +7,8 @@ import pdb
 
 s1=2
 s2=9
-fwid=13
-fhgt=13
+fwid=8.5
+fhgt=5.25
 dotsPerInch=600
 nbins=100
 set_plot_params(fontsize=12)
