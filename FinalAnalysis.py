@@ -14,8 +14,8 @@ import pdb
 
 s1=2
 s2=9
-fwid=13
-fhgt=13
+fwid=8.5
+fhgt=5.25
 dotsPerInch=600
 nbins=100
 set_plot_params(fontsize=12)
@@ -237,7 +237,7 @@ for i in range(numPts):
 LnLike=KF.getLnLike(y,mask,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
 r,x=KF.fixedIntervalSmoother(y,v,x,X,P,XMinus,PMinus,F,I,D,Q,H,R,K)
 
-plt.figure(2,figsize=(fwid,fhgt))
+plt.figure(2,figsize=(fwid,2*fhgt))
 
 '''plt.subplot(311)
 yMax=np.max(y[np.nonzero(y[:,0]),0])
