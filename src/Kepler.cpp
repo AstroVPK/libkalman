@@ -300,8 +300,8 @@ tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::readRawData(strin
 		colNum_FLUX = 21;
 		colNum_FLUX_ERR = 8;
 		} else {
-		colNum_FLUX = 3
-		colNum_FLUX_ERR = 4
+		colNum_FLUX = 3;
+		colNum_FLUX_ERR = 4;
 		}
 	vector<double> time, time_err, pdcsap_flux, pdcsap_flux_err;
 	vector<int> cadenceNo, quarterNo;
