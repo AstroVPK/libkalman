@@ -67,10 +67,10 @@ int main() {
 		AcquireInput(cout,cin,"EpochList file (kplr0xxxxxxxx-epochList.dat): ","Invalid value.\n",keplerEpochList);
 		} while ((!boost::filesystem::exists(path(keplerEpochList))) and (!boost::filesystem::is_regular_file(path(keplerPath+keplerID+"/"+keplerEpochList))));
 
-	int cbvORpdc = 2;
+	int cbvORpdc = 3;
 	do {
-		AcquireInput(cout,cin,"PDCSAP_FLUX or CBVSAP_FLUX (0/1): ","Invalid value.\n",cbvORpdc);
-		} while (abs(cbvORpdc) > 1);
+		AcquireInput(cout,cin,"PDCSAP_FLUX (0) or CBVSAP_FLUX (1) or SAP_FLUX(2): ","Invalid value.\n",cbvORpdc);
+		} while (abs(cbvORpdc) > 2);
 
 	array<double,3> loc = {0.0, 0.0, 0.0};
 	Equatorial keplerPos = Equatorial(loc);

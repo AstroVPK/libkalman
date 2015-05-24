@@ -15,7 +15,7 @@ private:
 	int Order, NumQuarters, NumCadences, NumLags, FirstCadence, LastCadence, OverSampleFactor, LengthFactor, NumSimsSI, NumSimsSII, NumSimsCS, MaxEvalsSI, MaxEvalsSII, MaxEvalsCS, NumChiSq, Stage, NumSeeds;
 	double StartEpoch, MeanFlux, FracHOST, FracMIC, FTolSI, FTolSII;
 	tuple<vector<array<int,2>>,vector<array<double,5>>> readRawData();
-	tuple<vector<array<int,2>>,vector<array<double,5>>> readRawData(string& fileName, bool cbvORpdc);
+	tuple<vector<array<int,2>>,vector<array<double,5>>> readRawData(string& fileName, int cbvORpdc);
 	vector<int> getQuarterList(const tuple<vector<array<int,2>>,vector<array<double,5>>>& dataArray);
 	int getQuarterIndex(const vector<int>& quarterList, int quarter);
 	vector<int> getQuarterLimits(const tuple<vector<array<int,2>>,vector<array<double,5>>>& dataArray, const vector<int>& quarterList);
@@ -71,9 +71,9 @@ public:
 	tuple<vector<array<int,2>>,vector<array<double,5>>> getData();
 	tuple<vector<array<int,2>>,vector<array<double,5>>> getData(int stitchMethod);
 	tuple<vector<array<int,2>>,vector<array<double,5>>> getData(bool forceCalibrate, int stitchMethod); // Method0 = No Stitching; Method1 = Match nd points; Method2 = Match Avg across 50 entries; Method3 = Using first increments
-	tuple<vector<array<int,2>>,vector<array<double,5>>> getData(string& fileName, bool cbvORpdc);
-	tuple<vector<array<int,2>>,vector<array<double,5>>> getData(string& filename, bool cbvORpdc, int stitchMethod);
-	tuple<vector<array<int,2>>,vector<array<double,5>>> getData(string& fileName, bool cbvORpdc, bool forceCalibrate, int stitchMethod); // Method0 = No Stitching; Method1 = Match nd points; Method2 = Match Avg across 50 entries; Method3 = Using first increments
+	tuple<vector<array<int,2>>,vector<array<double,5>>> getData(string& fileName, int cbvORpdc);
+	tuple<vector<array<int,2>>,vector<array<double,5>>> getData(string& filename, int cbvORpdc, int stitchMethod);
+	tuple<vector<array<int,2>>,vector<array<double,5>>> getData(string& fileName, int cbvORpdc, bool forceCalibrate, int stitchMethod); // Method0 = No Stitching; Method1 = Match nd points; Method2 = Match Avg across 50 entries; Method3 = Using first increments
 	void setProperties(const tuple<vector<array<int,2>>,vector<array<double,5>>>& dataArray);
 	void setMask(const tuple<vector<array<int,2>>,vector<array<double,5>>>& dataArray, double* mask);
 	vector<unsigned int> getSeeds();

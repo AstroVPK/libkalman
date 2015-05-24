@@ -291,14 +291,17 @@ tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::readRawData() {
 	return resultArr;
 	}
 
-tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::readRawData(string& fileName, bool cbvORpdc) {
+tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::readRawData(string& fileName, int cbvORpdc) {
 	int colNum_FLUX = 7, colNum_FLUX_ERR = 8;
 	if (cbvORpdc == 0) { // Use PDC
 		colNum_FLUX = 7;
 		colNum_FLUX_ERR = 8;
-		} else {
+		} else if (cbvORpdc ==1) {
 		colNum_FLUX = 21;
 		colNum_FLUX_ERR = 8;
+		} else {
+		colNum_FLUX = 3
+		colNum_FLUX_ERR = 4
 		}
 	vector<double> time, time_err, pdcsap_flux, pdcsap_flux_err;
 	vector<int> cadenceNo, quarterNo;
@@ -646,7 +649,7 @@ tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(bool forc
 		}
 	}
 
-tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(string& fileName, bool cbvORpdc, bool forceCalibrate, int stitchMethod) {
+tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(string& fileName, int cbvORpdc, bool forceCalibrate, int stitchMethod) {
 	double dummy;
 	array<int,2> cadenceArr;
 	array<double,5> dataArr;
@@ -724,13 +727,13 @@ tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(string& f
 		}
 	}
 
-tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(string& fileName, bool cbvORpdc) {
+tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(string& fileName, int cbvORpdc) {
 	bool forceCalibrate = false;
 	tuple<vector<array<int,2>>,vector<array<double,5>>> dataArray = getData(fileName, cbvORpdc, forceCalibrate, 2);
 	return dataArray;
 	}
 
-tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(string& fileName, bool cbvORpdc, int stitchMethod) {
+tuple<vector<array<int,2>>,vector<array<double,5>>> KeplerObj::getData(string& fileName, int cbvORpdc, int stitchMethod) {
 	bool forceCalibrate = true;
 	tuple<vector<array<int,2>>,vector<array<double,5>>> dataArray = getData(fileName, cbvORpdc, forceCalibrate, stitchMethod);
 	return dataArray;
